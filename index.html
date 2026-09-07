@@ -14,7 +14,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
     <style>
         * {
@@ -65,18 +64,12 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        .scan-line {
-            position: absolute;
-            width: 100%;
-            height: 3px;
-            background: #6366f1;
-            box-shadow: 0 0 15px #6366f1, 0 0 8px #6366f1;
-            animation: scanAnim 2s infinite ease-in-out;
+        @keyframes pulse-red {
+            0%, 100% { background-color: rgba(225, 29, 72, 0.2); color: #f43f5e; }
+            50% { background-color: rgba(225, 29, 72, 0.8); color: #ffffff; }
         }
-        @keyframes scanAnim {
-            0% { top: 5%; }
-            50% { top: 90%; }
-            100% { top: 5%; }
+        .listening {
+            animation: pulse-red 1.2s infinite ease-in-out;
         }
     </style>
 </head>
@@ -161,7 +154,7 @@
             <form id="cardForm" onsubmit="handleSaveCard(event)" class="space-y-4">
                 <input type="hidden" id="cardId">
 
-                <!-- Card Number with direct camera scan button -->
+                <!-- Card Number with Voice Button -->
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1.5">شماره کارت (۱۶ رقم)</label>
                     <div class="relative flex items-center">
@@ -169,18 +162,25 @@
                             placeholder="XXXX XXXX XXXX XXXX"
                             oninput="onCardNumberInput(this)"
                             class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-11 pr-3.5 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 force-ltr">
-                        <button type="button" onclick="openScanner('card')" title="اسکن شماره کارت"
+                        <button type="button" id="btnVoiceCard" onclick="startVoiceInput('card')" title="ورودی صوتی"
                             class="absolute left-1.5 w-8 h-8 rounded-lg bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600 hover:text-white flex items-center justify-center transition-all">
-                            <i class="fa-solid fa-camera text-xs"></i>
+                            <i class="fa-solid fa-microphone text-xs"></i>
                         </button>
                     </div>
                 </div>
 
+                <!-- Holder Name with Voice Button -->
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1.5">نام صاحب حساب / کارت</label>
-                    <input type="text" id="inputHolder" required placeholder="مثال: علی محمدی"
-                        oninput="document.getElementById('previewHolder').innerText = this.value || '--- ---'"
-                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
+                    <div class="relative flex items-center">
+                        <input type="text" id="inputHolder" required placeholder="مثال: علی محمدی"
+                            oninput="document.getElementById('previewHolder').innerText = this.value || '--- ---'"
+                            class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-11 pr-3.5 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
+                        <button type="button" id="btnVoiceHolder" onclick="startVoiceInput('holder')" title="ورودی صوتی"
+                            class="absolute left-1.5 w-8 h-8 rounded-lg bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600 hover:text-white flex items-center justify-center transition-all">
+                            <i class="fa-solid fa-microphone text-xs"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div>
@@ -189,16 +189,16 @@
                         class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 force-ltr">
                 </div>
 
-                <!-- IBAN with direct camera scan button -->
+                <!-- IBAN with Voice Button -->
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1.5">شماره شبا - بدون IR (اختیاری)</label>
                     <div class="relative flex items-center">
                         <span class="absolute right-3 text-slate-500 font-bold text-xs">IR</span>
                         <input type="text" id="inputIban" inputmode="numeric" maxlength="24" placeholder="24 رقم شماره شبا"
                             class="w-full bg-slate-950 border border-slate-800 rounded-xl pr-9 pl-11 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 force-ltr">
-                        <button type="button" onclick="openScanner('iban')" title="اسکن شماره شبا"
+                        <button type="button" id="btnVoiceIban" onclick="startVoiceInput('iban')" title="ورودی صوتی"
                             class="absolute left-1.5 w-8 h-8 rounded-lg bg-amber-600/20 text-amber-400 hover:bg-amber-600 hover:text-white flex items-center justify-center transition-all">
-                            <i class="fa-solid fa-camera text-xs"></i>
+                            <i class="fa-solid fa-microphone text-xs"></i>
                         </button>
                     </div>
                 </div>
@@ -208,34 +208,6 @@
                     <button type="submit" class="flex-1 bg-indigo-600 text-white py-3 rounded-xl text-sm font-semibold shadow-lg shadow-indigo-600/30">ذخیره کارت</button>
                 </div>
             </form>
-        </div>
-    </div>
-
-    <!-- Auto Scanner Modal -->
-    <div id="scannerModal" class="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-between p-4 hidden">
-        <div class="w-full max-w-md flex items-center justify-between z-20 pt-2">
-            <span id="scanTitle" class="text-sm font-bold text-white flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                اسکن با دوربین...
-            </span>
-            <button type="button" onclick="closeScanner()" class="w-9 h-9 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-
-        <div class="relative w-full max-w-md flex-1 flex items-center justify-center overflow-hidden my-4 rounded-2xl">
-            <video id="videoFeed" autoplay playsinline muted class="w-full h-full object-cover"></video>
-            <div id="scanBox" class="absolute w-[85%] aspect-[1.586/1] rounded-2xl border-2 border-indigo-500 pointer-events-none overflow-hidden shadow-[0_0_0_9999px_rgba(15,23,42,0.75)]">
-                <div class="scan-line"></div>
-            </div>
-        </div>
-
-        <canvas id="scanCanvas" class="hidden"></canvas>
-
-        <div class="w-full max-w-md flex flex-col gap-2 z-20 pb-6 text-center">
-            <p id="scanStatus" class="text-xs text-indigo-300 font-semibold bg-indigo-950/80 py-2 px-4 rounded-full border border-indigo-500/30">
-                کارت را کاملاً داخل کادر نگه دارید...
-            </p>
         </div>
     </div>
 
@@ -266,11 +238,7 @@
         const DEFAULT_BANK = { name: "کارت بانکی", bg: "linear-gradient(135deg, #1e293b, #334155)", textColor: "text-white" };
 
         let cards = [];
-        let videoStream = null;
-        let scanInterval = null;
-        let isProcessing = false;
-        let tesseractWorker = null;
-        let scanTargetType = 'card'; // 'card' or 'iban'
+        let recognition = null;
 
         window.addEventListener('DOMContentLoaded', () => {
             const saved = localStorage.getItem('my_bank_cards');
@@ -388,124 +356,71 @@
             });
         }
 
-        async function openScanner(targetType = 'card') {
-            scanTargetType = targetType;
-            closeModal();
-            
-            const scannerModal = document.getElementById('scannerModal');
-            const video = document.getElementById('videoFeed');
-            const titleEl = document.getElementById('scanTitle');
-            const scanBox = document.getElementById('scanBox');
-
-            if (targetType === 'iban') {
-                titleEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span> اسکن اختصاصی شبا`;
-                scanBox.style.aspectRatio = "3.5 / 1";
-            } else {
-                titleEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> اسکن شماره کارت`;
-                scanBox.style.aspectRatio = "1.586 / 1";
-            }
-
-            try {
-                videoStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
-                });
-                video.srcObject = videoStream;
-                scannerModal.classList.remove('hidden');
-
-                if (!tesseractWorker) {
-                    tesseractWorker = await Tesseract.createWorker('eng');
-                    await tesseractWorker.setParameters({
-                        tessedit_char_whitelist: '0123456789'
-                    });
-                }
-
-                isProcessing = false;
-                scanInterval = setInterval(autoScanFrame, 500);
-
-            } catch (err) {
-                alert('دسترسی به دوربین داده نشد.');
-            }
+        // تبدیل اعداد فارسی/عربی و کلمات به عدد انگلیسی
+        function convertPersianToDigits(str) {
+            const p2e = {'۰':'0','۱':'1','۲':'2','۳':'3','۴':'4','۵':'5','۶':'6','۷':'7','۸':'8','۹':'9'};
+            const a2e = {'٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9'};
+            let res = str.replace(/[۰-۹]/g, w => p2e[w]).replace(/[٠-٩]/g, w => a2e[w]);
+            return res.replace(/\D/g, '');
         }
 
-        function closeScanner() {
-            if (scanInterval) clearInterval(scanInterval);
-            if (videoStream) videoStream.getTracks().forEach(track => track.stop());
-            document.getElementById('scannerModal').classList.add('hidden');
-            openAddModal(false);
-        }
-
-        async function autoScanFrame() {
-            if (isProcessing) return;
-            isProcessing = true;
-
-            const video = document.getElementById('videoFeed');
-            const canvas = document.getElementById('scanCanvas');
-
-            if (!video.videoWidth) {
-                isProcessing = false;
+        function startVoiceInput(targetField) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert('مرورگر شما از قابلیت تشخیص گفتار پشتیبانی نمی‌کند.');
                 return;
             }
 
-            // برش اختصاصی ناحیه اسکن (Crop Region) جهت بالاترین دقت ممکن
-            const vW = video.videoWidth;
-            const vH = video.videoHeight;
-            
-            // محدوده وسط کادر
-            const cropW = vW * 0.8;
-            const cropH = scanTargetType === 'iban' ? vH * 0.25 : vH * 0.5;
-            const cropX = (vW - cropW) / 2;
-            const cropY = (vH - cropH) / 2;
+            let btnId = targetField === 'card' ? 'btnVoiceCard' : (targetField === 'holder' ? 'btnVoiceHolder' : 'btnVoiceIban');
+            const btn = document.getElementById(btnId);
 
-            canvas.width = cropW;
-            canvas.height = cropH;
-            const ctx = canvas.getContext('2d');
-            
-            ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
-
-            // افزایش کنتراست شدید (Thresholding) جهت حذف خطای 5 به جای 8
-            let imgData = ctx.getImageData(0, 0, cropW, cropH);
-            let d = imgData.data;
-            for (let i = 0; i < d.length; i += 4) {
-                let v = (d[i] + d[i + 1] + d[i + 2]) / 3;
-                v = v < 120 ? 0 : 255;
-                d[i] = d[i + 1] = d[i + 2] = v;
+            if (recognition) {
+                recognition.stop();
+                recognition = null;
+                btn.classList.remove('listening');
+                return;
             }
-            ctx.putImageData(imgData, 0, 0);
 
-            try {
-                const { data: { text } } = await tesseractWorker.recognize(canvas);
-                const numbers = text.replace(/[^\d]/g, '');
+            recognition = new SpeechRecognition();
+            recognition.lang = 'fa-IR';
+            recognition.continuous = false;
+            recognition.interimResults = false;
 
-                if (scanTargetType === 'card') {
-                    // جستجو برای کارت ۱۶ رقمی معتبر
-                    const validCardMatch = numbers.match(/(502229|639370|606373|589463|603799|610433|603769|621986|627353|589210|622106|504172|636214|603770|628023)\d{10}/);
-                    
-                    if (validCardMatch) {
-                        if (navigator.vibrate) navigator.vibrate(200);
-                        document.getElementById('inputCardNumber').value = formatCardNumber(validCardMatch[0]);
-                        onCardNumberInput(document.getElementById('inputCardNumber'));
-                        closeScanner();
-                        showToast('شماره کارت با دقت اسکن شد');
-                        isProcessing = false;
-                        return;
-                    }
-                } else if (scanTargetType === 'iban') {
-                    // جستجو برای شبا (۲۴ رقم)
-                    const ibanMatch = numbers.match(/\d{24}/);
-                    if (ibanMatch) {
-                        if (navigator.vibrate) navigator.vibrate(200);
-                        document.getElementById('inputIban').value = ibanMatch[0];
-                        closeScanner();
-                        showToast('شماره شبا اسکن شد');
-                        isProcessing = false;
-                        return;
-                    }
+            btn.classList.add('listening');
+            showToast('در حال گوش دادن... صحبت کنید');
+
+            recognition.onresult = (event) => {
+                const speechResult = event.results[0][0].transcript;
+                btn.classList.remove('listening');
+
+                if (targetField === 'card') {
+                    const digits = convertPersianToDigits(speechResult);
+                    const input = document.getElementById('inputCardNumber');
+                    input.value = formatCardNumber(digits);
+                    onCardNumberInput(input);
+                    showToast('شماره کارت دریافت شد');
+                } else if (targetField === 'iban') {
+                    const digits = convertPersianToDigits(speechResult);
+                    document.getElementById('inputIban').value = digits.slice(0, 24);
+                    showToast('شماره شبا دریافت شد');
+                } else if (targetField === 'holder') {
+                    document.getElementById('inputHolder').value = speechResult;
+                    document.getElementById('previewHolder').innerText = speechResult;
+                    showToast('نام صاحب کارت دریافت شد');
                 }
-            } catch (e) {
-                console.log("در حال خوانی...");
-            }
+            };
 
-            isProcessing = false;
+            recognition.onerror = (event) => {
+                btn.classList.remove('listening');
+                showToast('صدا تشخیص داده نشد، دوباره امتحان کنید');
+            };
+
+            recognition.onend = () => {
+                btn.classList.remove('listening');
+                recognition = null;
+            };
+
+            recognition.start();
         }
 
         function openAddModal(reset = true) {
@@ -571,7 +486,7 @@
             const toast = document.getElementById('toast');
             document.getElementById('toastMessage').innerText = msg;
             toast.classList.remove('opacity-0', 'pointer-events-none');
-            setTimeout(() => toast.classList.add('opacity-0', 'pointer-events-none'), 2000);
+            setTimeout(() => toast.classList.add('opacity-0', 'pointer-events-none'), 2200);
         }
     </script>
 </body>
