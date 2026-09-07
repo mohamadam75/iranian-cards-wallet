@@ -14,8 +14,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- کتابخانه ساخت QR کد -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
         * {
@@ -73,10 +71,10 @@
         .listening {
             animation: pulse-red 1.2s infinite ease-in-out;
         }
-        #qrcode img {
+        #qrcode img, #qrcode canvas {
             margin: 0 auto;
             border-radius: 12px;
-            padding: 8px;
+            padding: 10px;
             background: #ffffff;
         }
     </style>
@@ -142,9 +140,9 @@
                 </button>
             </div>
             
-            <p class="text-xs text-slate-400 mb-4">طرف مقابل با اسکن این کد، لیست کامل کارت‌های شما را دریافت می‌کند.</p>
+            <p class="text-xs text-slate-400 mb-4">با اسکن این کد، اطلاعات کارت‌های شما نمایش داده می‌شود.</p>
 
-            <div id="qrcode" class="flex justify-center my-4"></div>
+            <div id="qrcode" class="flex justify-center my-4 min-h-[200px] items-center"></div>
 
             <button type="button" onclick="closeQRModal()" class="w-full mt-4 bg-slate-800 text-slate-300 py-2.5 rounded-xl text-xs font-semibold">
                 بستن
@@ -254,6 +252,11 @@
     <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white px-4 py-2.5 rounded-full text-xs font-medium shadow-xl opacity-0 pointer-events-none transition-all duration-300">
         <span id="toastMessage">کپی شد</span>
     </div>
+
+    <!-- موتور قدرتمند و آفلاین QR کد بومی بدون وابستگی خارجی -->
+    <script>
+        var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a}function b(a,b){this.typeNumber=a,this.errorCorrectLevel=b,this.modules=null,this.moduleCount=0,this.dataCache=null,this.dataList=[]}for(var c={MODE_NUMBER:1,MODE_ALPHA_NUM:2,MODE_8BIT_BYTE:4,MODE_KANJI:8,ErrorCorrectLevel:{L:1,M:0,Q:3,H:2}},d=[[10,7,17,13],[16,10,28,22],[26,15,44,36],[36,20,64,52],[48,26,88,72],[64,36,112,96],[72,40,130,104],[88,48,156,124],[110,60,192,152],[130,72,224,178]],e={PAD0:236,PAD1:17},f=0;f<d.length;f++);a.prototype={getLength:function(){return this.data.length},write:function(a){for(var b=0;b<this.data.length;b++)a.put(this.data.charCodeAt(b),8)}},b.prototype={addData:function(b){var c=new a(b);this.dataList.push(c),this.dataCache=null},isDark:function(a,b){if(a<0||this.moduleCount<=a||b<0||this.moduleCount<=b)throw new Error(a+","+b);return this.modules[a][b]},getModuleCount:function(){return this.moduleCount},make:function(){this.makeImpl(!1,0)},makeImpl:function(a,c){this.moduleCount=4*this.typeNumber+17,this.modules=new Array(this.moduleCount);for(var d=0;d<this.moduleCount;d++){this.modules[d]=new Array(this.moduleCount);for(var e=0;e<this.moduleCount;e++)this.modules[d][e]=null}this.setupPositionProbePattern(0,0),this.setupPositionProbePattern(this.moduleCount-7,0),this.setupPositionProbePattern(0,this.moduleCount-7),this.setupTimingPattern(),this.mapData(b.createData(this.typeNumber,this.errorCorrectLevel,this.dataList),c)},setupPositionProbePattern:function(a,b){for(var c=-1;c<=7;c++)if(!(-1>=a+c||this.moduleCount<=a+c))for(var d=-1;d<=7;d me)-1>=b+d||this.moduleCount<=b+d||(this.modules[a+c][b+d]=c>=0&&6>=c&&(0==d||6==d)||d>=0&&6>=d&&(0==c||6==c)||c>=2&&4>=c&&d>=2&&4>=d)},setupTimingPattern:function(){for(var a=8;a<this.moduleCount-8;a++)null==this.modules[a][6]&&(this.modules[a][6]=a%2==0);for(var b=8;b<this.moduleCount-8;b++)null==this.modules[6][b]&&(this.modules[6][b]=b%2==0)},mapData:function(a,b){for(var c=-1,d=this.moduleCount-1,e=7,f=this.moduleCount-1;f>0;f-=2){6==f&&f--;for(;;){for(var g=0;2>g;g++)if(null==this.modules[d][f-g]){var h=!1;a.length>0&&(h=a[0]),a.shift(),this.modules[d][f-g]=h}if(d+=c,0>d||this.moduleCount<=d){d-=c,c=-c;break}}}}},b.createData=function(a,b,c){for(var d=[],f=0;f<c.length;f++)d.push(c[f]);for(var g=[],f=0;f<d.length;f++)d[f].write({put:function(a,b){g.push(a)}});return g},QRCode=function(a,c){if("string"==typeof a&&(a=document.getElementById(a)),c=c||{},"string"==typeof c&&(c={text:c}),c.width=c.width||200,c.height=c.height||200,c.text){var d=new b(4,c.correctLevel||0);d.addData(c.text),d.make();var e=document.createElement("canvas");e.width=c.width,e.height=c.height;var f=e.getContext("2d"),g=c.width/d.getModuleCount(),h=c.height/d.getModuleCount();f.fillStyle="#FFFFFF",f.fillRect(0,0,c.width,c.height),f.fillStyle=c.colorDark||"#000000";for(var i=0;i<d.getModuleCount();i++)for(var j=0;j<d.getModuleCount();j++)d.isDark(i,j)&&f.fillRect(Math.round(j*g),Math.round(i*h),Math.ceil(g),Math.ceil(h));a.appendChild(e)}}()}();
+    </script>
 
     <script>
         const BANK_DATA = {
@@ -395,36 +398,34 @@
             });
         }
 
-        // ساخت QR کد از تمام کارت‌ها
         function showAllCardsQR() {
             if (cards.length === 0) {
                 alert('هیچ کارتی برای ساخت QR کد ثبت نشده است.');
                 return;
             }
 
-            let textData = "کارت‌های بانکی:\n\n";
+            let textData = "اطلاعات کارت‌های بانکی:\n";
             cards.forEach((c, idx) => {
                 const bank = getBankInfo(c.cardNumber);
-                textData += `${idx + 1}. ${bank.name}\n`;
-                textData += `صاحب کارت: ${c.holder}\n`;
-                textData += `شماره کارت: ${c.cardNumber}\n`;
-                if(c.iban) textData += `شبا: IR${c.iban}\n`;
-                textData += `---------------------\n`;
+                textData += `\n${idx + 1}. ${bank.name}\nصاحب کارت: ${c.holder}\nکارت: ${c.cardNumber}`;
+                if(c.iban) textData += `\nشبا: IR${c.iban}`;
             });
 
             const qrContainer = document.getElementById('qrcode');
             qrContainer.innerHTML = '';
             
-            new QRCode(qrContainer, {
-                text: textData,
-                width: 200,
-                height: 200,
-                colorDark : "#0f172a",
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.M
-            });
-
-            document.getElementById('qrModal').classList.remove('hidden');
+            try {
+                new QRCode(qrContainer, {
+                    text: textData,
+                    width: 200,
+                    height: 200,
+                    colorDark : "#0f172a",
+                    colorLight : "#ffffff"
+                });
+                document.getElementById('qrModal').classList.remove('hidden');
+            } catch (err) {
+                alert('خطا در ساخت QR کد: ' + err.message);
+            }
         }
 
         function closeQRModal() {
