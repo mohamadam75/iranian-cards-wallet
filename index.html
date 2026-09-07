@@ -76,7 +76,6 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Camera overlay frame */
         .scan-overlay {
             border: 2px dashed #6366f1;
             box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.75);
@@ -96,7 +95,7 @@
                 <p class="text-xs text-slate-400" id="cardCountText">۰ کارت ثبت شده</p>
             </div>
         </div>
-        <button onclick="openAddModal()" class="bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-sm font-semibold flex items-center gap-1.5 transition-all shadow-lg shadow-indigo-600/30">
+        <button type="button" onclick="openAddModal()" class="bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-sm font-semibold flex items-center gap-1.5 transition-all shadow-lg shadow-indigo-600/30">
             <i class="fa-solid fa-plus text-xs"></i>
             <span>کارت جدید</span>
         </button>
@@ -108,7 +107,7 @@
             <i class="fa-solid fa-arrow-up-from-bracket text-base text-indigo-400"></i>
             <span>برای نصب اپلیکیشن رو آیفون، دکمه <b>Share</b> و سپس <b>Add to Home Screen</b> را بزنید.</span>
         </div>
-        <button onclick="closeIosBanner()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-sm"></i></button>
+        <button type="button" onclick="closeIosBanner()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-sm"></i></button>
     </div>
 
     <!-- Cards Container / List -->
@@ -123,27 +122,27 @@
         </div>
         <h3 class="text-base font-semibold text-slate-300 mb-1">هنوز هیچ کارتی اضافه نکرده‌اید</h3>
         <p class="text-xs text-slate-500 mb-6 max-w-xs">شماره کارت‌های خود را دستی یا با اسکن دوربین اضافه کنید.</p>
-        <button onclick="openAddModal()" class="bg-slate-800 hover:bg-slate-700 text-indigo-400 border border-indigo-500/30 px-5 py-2.5 rounded-xl text-sm font-medium transition-all">
+        <button type="button" onclick="openAddModal()" class="bg-slate-800 hover:bg-slate-700 text-indigo-400 border border-indigo-500/30 px-5 py-2.5 rounded-xl text-sm font-medium transition-all">
             افزودن اولین کارت
         </button>
     </div>
 
     <!-- Modal Form (Add / Edit Card) -->
-    <div id="cardModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
-        <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl transform translate-y-full sm:translate-y-0 transition-transform duration-300 max-h-[90vh] overflow-y-auto no-scrollbar">
+    <div id="cardModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center hidden transition-all duration-300">
+        <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto no-scrollbar">
             
             <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
                 <h3 id="modalTitle" class="text-base font-bold text-slate-100 flex items-center gap-2">
                     <i class="fa-solid fa-credit-card text-indigo-400"></i>
                     <span>افزودن کارت جدید</span>
                 </h3>
-                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center hover:text-white">
+                <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center hover:text-white">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
             <!-- Scan Button Option -->
-            <button onclick="openScanner()" class="w-full mb-4 bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-indigo-500/30 py-3 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-md">
+            <button type="button" onclick="openScanner()" class="w-full mb-4 bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-indigo-500/30 py-3 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-md">
                 <i class="fa-solid fa-camera text-indigo-400 text-sm"></i>
                 <span>اسکن هوشمند کارت با دوربین</span>
             </button>
@@ -223,16 +222,15 @@
                 <i class="fa-solid fa-expand text-indigo-400"></i>
                 <span>اسکن کارت بانکی</span>
             </span>
-            <button onclick="closeScanner()" class="w-9 h-9 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center">
+            <button type="button" onclick="closeScanner()" class="w-9 h-9 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
 
         <!-- Camera View Area -->
         <div class="relative w-full max-w-md flex-1 flex items-center justify-center overflow-hidden my-4 rounded-2xl">
-            <video id="videoFeed" autoplay playsinline class="w-full h-full object-cover"></video>
+            <video id="videoFeed" autoplay playsinline muted class="w-full h-full object-cover"></video>
             
-            <!-- Frame Overlay for Positioning Card -->
             <div class="absolute w-[85%] aspect-[1.586/1] rounded-2xl scan-overlay pointer-events-none flex flex-col justify-between p-4">
                 <span class="text-[11px] text-indigo-300 bg-slate-900/80 px-2 py-0.5 rounded self-center">کارت را داخل این کادر قرار دهید</span>
                 <div class="h-0.5 w-full bg-indigo-500/50 animate-pulse"></div>
@@ -245,7 +243,7 @@
             <div id="scanStatus" class="text-xs text-center text-slate-400 min-h-[20px]">
                 آماده برای اسکن...
             </div>
-            <button onclick="captureAndScan()" id="btnCapture" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30">
+            <button type="button" onclick="captureAndScan()" id="btnCapture" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30">
                 <i class="fa-solid fa-camera"></i>
                 <span>اسکن و استخراج اطلاعات</span>
             </button>
@@ -372,7 +370,7 @@
                                 <span class="text-slate-400">کارت:</span>
                                 <span class="font-mono dir-ltr text-slate-200">${card.cardNumber}</span>
                             </div>
-                            <button onclick="copyToClipboard('${card.cardNumber.replace(/\s/g, '')}', 'شماره کارت')" class="bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600 hover:text-white px-2.5 py-1 rounded-lg transition-all font-medium">
+                            <button type="button" onclick="copyToClipboard('${card.cardNumber.replace(/\s/g, '')}', 'شماره کارت')" class="bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600 hover:text-white px-2.5 py-1 rounded-lg transition-all font-medium">
                                 کپی
                             </button>
                         </div>
@@ -384,7 +382,7 @@
                                 <span class="text-slate-400">حساب:</span>
                                 <span class="font-mono text-slate-200">${card.account}</span>
                             </div>
-                            <button onclick="copyToClipboard('${card.account}', 'شماره حساب')" class="bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600 hover:text-white px-2.5 py-1 rounded-lg transition-all font-medium">
+                            <button type="button" onclick="copyToClipboard('${card.account}', 'شماره حساب')" class="bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600 hover:text-white px-2.5 py-1 rounded-lg transition-all font-medium">
                                 کپی
                             </button>
                         </div>` : ''}
@@ -396,7 +394,7 @@
                                 <span class="text-slate-400">شبا:</span>
                                 <span class="font-mono dir-ltr text-slate-200">IR${card.iban}</span>
                             </div>
-                            <button onclick="copyToClipboard('IR${card.iban}', 'شماره شبا')" class="bg-amber-600/20 text-amber-400 hover:bg-amber-600 hover:text-white px-2.5 py-1 rounded-lg transition-all font-medium">
+                            <button type="button" onclick="copyToClipboard('IR${card.iban}', 'شماره شبا')" class="bg-amber-600/20 text-amber-400 hover:bg-amber-600 hover:text-white px-2.5 py-1 rounded-lg transition-all font-medium">
                                 کپی
                             </button>
                         </div>` : ''}
@@ -404,19 +402,19 @@
 
                     <div class="flex items-center justify-between pt-2 border-t border-slate-800/80 text-xs">
                         <div class="flex items-center gap-1">
-                            <button onclick="moveCard(${index}, -1)" ${index === 0 ? 'disabled class="opacity-30 p-2 text-slate-500"' : 'class="p-2 text-slate-400 hover:text-indigo-400"'} title="انتقال به بالا">
+                            <button type="button" onclick="moveCard(${index}, -1)" ${index === 0 ? 'disabled class="opacity-30 p-2 text-slate-500"' : 'class="p-2 text-slate-400 hover:text-indigo-400"'} title="انتقال به بالا">
                                 <i class="fa-solid fa-arrow-up"></i>
                             </button>
-                            <button onclick="moveCard(${index}, 1)" ${index === cards.length - 1 ? 'disabled class="opacity-30 p-2 text-slate-500"' : 'class="p-2 text-slate-400 hover:text-indigo-400"'} title="انتقال به پایین">
+                            <button type="button" onclick="moveCard(${index}, 1)" ${index === cards.length - 1 ? 'disabled class="opacity-30 p-2 text-slate-500"' : 'class="p-2 text-slate-400 hover:text-indigo-400"'} title="انتقال به پایین">
                                 <i class="fa-solid fa-arrow-down"></i>
                             </button>
                         </div>
                         <div class="flex items-center gap-2">
-                            <button onclick="editCard(${index})" class="text-slate-400 hover:text-indigo-400 p-2 flex items-center gap-1">
+                            <button type="button" onclick="editCard(${index})" class="text-slate-400 hover:text-indigo-400 p-2 flex items-center gap-1">
                                 <i class="fa-solid fa-pen-to-square"></i>
                                 <span>ویرایش</span>
                             </button>
-                            <button onclick="deleteCard(${index})" class="text-rose-400/80 hover:text-rose-400 p-2 flex items-center gap-1">
+                            <button type="button" onclick="deleteCard(${index})" class="text-rose-400/80 hover:text-rose-400 p-2 flex items-center gap-1">
                                 <i class="fa-solid fa-trash-can"></i>
                                 <span>حذف</span>
                             </button>
@@ -429,6 +427,7 @@
 
         // Camera Scan Functionality
         async function openScanner() {
+            closeModal();
             const scannerModal = document.getElementById('scannerModal');
             const video = document.getElementById('videoFeed');
             const scanStatus = document.getElementById('scanStatus');
@@ -478,21 +477,17 @@
                     }
                 });
 
-                // Extract Card Number (16 digits)
-                const cardMatch = text.match(/(?:\d[ -]*?){16}/);
-                // Extract IBAN (24 digits after IR)
-                const ibanMatch = text.match(/IR\s*?(\d{24})/i) || text.match(/(\d{24})/);
+                const digitsOnly = text.replace(/\D/g, '');
+                const cardMatch = digitsOnly.match(/\d{16}/);
+                const ibanMatch = text.match(/IR\s*?(\d{24})/i) || text.match(/(\d{24})/);
 
                 let found = false;
 
                 if (cardMatch) {
-                    const cleanCard = cardMatch[0].replace(/\D/g, '');
-                    if (cleanCard.length === 16) {
-                        const formatted = formatCardNumber(cleanCard);
-                        document.getElementById('inputCardNumber').value = formatted;
-                        onCardNumberInput(document.getElementById('inputCardNumber'));
-                        found = true;
-                    }
+                    const formatted = formatCardNumber(cardMatch[0]);
+                    document.getElementById('inputCardNumber').value = formatted;
+                    onCardNumberInput(document.getElementById('inputCardNumber'));
+                    found = true;
                 }
 
                 if (ibanMatch) {
@@ -506,6 +501,7 @@
                 if (found) {
                     showToast('اطلاعات با موفقیت استخراج شد');
                     closeScanner();
+                    openAddModal(false);
                 } else {
                     status.innerText = 'شماره کارتی تشخیص داده نشد. زاویه نور را تنظیم و دوباره تلاش کنید.';
                 }
@@ -518,21 +514,21 @@
         }
 
         // Modal Controls
-        function openAddModal() {
-            document.getElementById('cardId').value = '';
-            document.getElementById('cardForm').reset();
-            document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-credit-card text-indigo-400"></i><span>افزودن کارت جدید</span>';
-            onCardNumberInput(document.getElementById('inputCardNumber'));
+        function openAddModal(reset = true) {
+            if(reset) {
+                document.getElementById('cardId').value = '';
+                document.getElementById('cardForm').reset();
+                document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-credit-card text-indigo-400"></i><span>افزودن کارت جدید</span>';
+                onCardNumberInput(document.getElementById('inputCardNumber'));
+            }
             
             const modal = document.getElementById('cardModal');
-            modal.classList.remove('opacity-0', 'pointer-events-none');
-            modal.querySelector('> div').classList.remove('translate-y-full');
+            modal.classList.remove('hidden');
         }
 
         function closeModal() {
             const modal = document.getElementById('cardModal');
-            modal.classList.add('opacity-0', 'pointer-events-none');
-            modal.querySelector('> div').classList.add('translate-y-full');
+            modal.classList.add('hidden');
         }
 
         function handleSaveCard(e) {
@@ -576,8 +572,7 @@
             document.getElementById('previewHolder').innerText = card.holder;
 
             const modal = document.getElementById('cardModal');
-            modal.classList.remove('opacity-0', 'pointer-events-none');
-            modal.querySelector('> div').classList.remove('translate-y-full');
+            modal.classList.remove('hidden');
         }
 
         function deleteCard(index) {
