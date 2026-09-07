@@ -14,6 +14,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- کتابخانه ساخت QR کد -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
         * {
@@ -71,6 +73,12 @@
         .listening {
             animation: pulse-red 1.2s infinite ease-in-out;
         }
+        #qrcode img {
+            margin: 0 auto;
+            border-radius: 12px;
+            padding: 8px;
+            background: #ffffff;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center p-4 antialiased">
@@ -86,10 +94,15 @@
                 <p class="text-xs text-slate-400" id="cardCountText">۰ کارت ثبت شده</p>
             </div>
         </div>
-        <button type="button" onclick="openAddModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-xl text-sm font-semibold flex items-center gap-1.5 shadow-lg shadow-indigo-600/30">
-            <i class="fa-solid fa-plus text-xs"></i>
-            <span>کارت جدید</span>
-        </button>
+        <div class="flex gap-2">
+            <button type="button" onclick="showAllCardsQR()" title="QR کد تمام کارت‌ها" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 p-2.5 rounded-xl text-sm font-semibold flex items-center justify-center">
+                <i class="fa-solid fa-qrcode text-base"></i>
+            </button>
+            <button type="button" onclick="openAddModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-xl text-sm font-semibold flex items-center gap-1.5 shadow-lg shadow-indigo-600/30">
+                <i class="fa-solid fa-plus text-xs"></i>
+                <span>جدید</span>
+            </button>
+        </div>
     </header>
 
     <!-- Search Input -->
@@ -114,6 +127,29 @@
         <button type="button" onclick="openAddModal()" class="bg-slate-800 text-indigo-400 border border-indigo-500/30 px-5 py-2.5 rounded-xl text-sm">
             افزودن کارت جدید
         </button>
+    </div>
+
+    <!-- Modal QR Code -->
+    <div id="qrModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center hidden p-4">
+        <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 text-center shadow-2xl">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-qrcode text-amber-400"></i>
+                    <span>QR کد کارت‌های بانکی</span>
+                </h3>
+                <button type="button" onclick="closeQRModal()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <p class="text-xs text-slate-400 mb-4">طرف مقابل با اسکن این کد، لیست کامل کارت‌های شما را دریافت می‌کند.</p>
+
+            <div id="qrcode" class="flex justify-center my-4"></div>
+
+            <button type="button" onclick="closeQRModal()" class="w-full mt-4 bg-slate-800 text-slate-300 py-2.5 rounded-xl text-xs font-semibold">
+                بستن
+            </button>
+        </div>
     </div>
 
     <!-- Modal Form -->
@@ -170,7 +206,6 @@
                             <i class="fa-solid fa-microphone text-xs"></i>
                         </button>
                     </div>
-                    <p class="text-[10px] text-slate-500 mt-1">هم‌زمان با گفتن اعداد، روی صفحه نوشته می‌شوند.</p>
                 </div>
 
                 <!-- Holder Name with Voice Button -->
@@ -352,15 +387,50 @@
                     </div>
 
                     <div class="flex justify-between pt-2 border-t border-slate-800 text-xs text-slate-400">
-                        <button onclick="editCard(${realIndex})"><i class="fa-solid fa-pen"></i> ویرایش کارت</button>
-                        <button onclick="deleteCard(${realIndex})" class="text-rose-400"><i class="fa-solid fa-trash"></i> حذف کارت</button>
+                        <button onclick="editCard(${realIndex})"><i class="fa-solid fa-pen"></i> ویرایش</button>
+                        <button onclick="deleteCard(${realIndex})" class="text-rose-400"><i class="fa-solid fa-trash"></i> حذف</button>
                     </div>
                 `;
                 listEl.appendChild(cardWrapper);
             });
         }
 
-        // تبدیل تبدیل اعداد و کلمات رایج به اعداد انگلیسی
+        // ساخت QR کد از تمام کارت‌ها
+        function showAllCardsQR() {
+            if (cards.length === 0) {
+                alert('هیچ کارتی برای ساخت QR کد ثبت نشده است.');
+                return;
+            }
+
+            let textData = "کارت‌های بانکی:\n\n";
+            cards.forEach((c, idx) => {
+                const bank = getBankInfo(c.cardNumber);
+                textData += `${idx + 1}. ${bank.name}\n`;
+                textData += `صاحب کارت: ${c.holder}\n`;
+                textData += `شماره کارت: ${c.cardNumber}\n`;
+                if(c.iban) textData += `شبا: IR${c.iban}\n`;
+                textData += `---------------------\n`;
+            });
+
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = '';
+            
+            new QRCode(qrContainer, {
+                text: textData,
+                width: 200,
+                height: 200,
+                colorDark : "#0f172a",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.M
+            });
+
+            document.getElementById('qrModal').classList.remove('hidden');
+        }
+
+        function closeQRModal() {
+            document.getElementById('qrModal').classList.add('hidden');
+        }
+
         function convertPersianToDigits(str) {
             const p2e = {'۰':'0','۱':'1','۲':'2','۳':'3','۴':'4','۵':'5','۶':'6','۷':'7','۸':'8','۹':'9'};
             const a2e = {'٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9'};
@@ -388,7 +458,7 @@
             recognition = new SpeechRecognition();
             recognition.lang = 'fa-IR';
             recognition.continuous = true;
-            recognition.interimResults = true; // نمایش زنده هم‌زمان
+            recognition.interimResults = true;
 
             btn.classList.add('listening');
             showToast('در حال شنیدن... بگوئید تا تایپ شود');
