@@ -112,7 +112,7 @@
         <h3 class="text-base font-semibold text-slate-300 mb-1">کارت بانکی یافت نشد</h3>
         <p class="text-xs text-slate-500 mb-6">برای افزودن کارت، دکمه زیر را فشار دهید.</p>
         <button type="button" onclick="openAddModal()" class="bg-slate-800 text-indigo-400 border border-indigo-500/30 px-5 py-2.5 rounded-xl text-sm">
-            افزودن اولین کارت
+            افزودن کارت جدید
         </button>
     </div>
 
@@ -123,7 +123,7 @@
             <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
                 <h3 id="modalTitle" class="text-base font-bold text-slate-100 flex items-center gap-2">
                     <i class="fa-solid fa-credit-card text-indigo-400"></i>
-                    <span>افزودن کارت جدید</span>
+                    <span>ثبت اطلاعات کارت</span>
                 </h3>
                 <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center">
                     <i class="fa-solid fa-xmark"></i>
@@ -156,17 +156,21 @@
 
                 <!-- Card Number with Voice Button -->
                 <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1.5">شماره کارت (۱۶ رقم)</label>
+                    <div class="flex justify-between items-center mb-1.5">
+                        <label class="text-xs font-medium text-slate-400">شماره کارت (۱۶ رقم)</label>
+                        <span class="text-[10px] text-indigo-400">تایپ و زنده هم‌زمان</span>
+                    </div>
                     <div class="relative flex items-center">
                         <input type="text" id="inputCardNumber" inputmode="numeric" maxlength="19" required
                             placeholder="XXXX XXXX XXXX XXXX"
                             oninput="onCardNumberInput(this)"
                             class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-11 pr-3.5 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 force-ltr">
-                        <button type="button" id="btnVoiceCard" onclick="startVoiceInput('card')" title="ورودی صوتی"
+                        <button type="button" id="btnVoiceCard" onclick="startVoiceInput('card')" title="ورودی صوتی هم‌زمان"
                             class="absolute left-1.5 w-8 h-8 rounded-lg bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600 hover:text-white flex items-center justify-center transition-all">
                             <i class="fa-solid fa-microphone text-xs"></i>
                         </button>
                     </div>
+                    <p class="text-[10px] text-slate-500 mt-1">هم‌زمان با گفتن اعداد، روی صفحه نوشته می‌شوند.</p>
                 </div>
 
                 <!-- Holder Name with Voice Button -->
@@ -176,7 +180,7 @@
                         <input type="text" id="inputHolder" required placeholder="مثال: علی محمدی"
                             oninput="document.getElementById('previewHolder').innerText = this.value || '--- ---'"
                             class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-11 pr-3.5 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
-                        <button type="button" id="btnVoiceHolder" onclick="startVoiceInput('holder')" title="ورودی صوتی"
+                        <button type="button" id="btnVoiceHolder" onclick="startVoiceInput('holder')" title="ورودی صوتی هم‌زمان"
                             class="absolute left-1.5 w-8 h-8 rounded-lg bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600 hover:text-white flex items-center justify-center transition-all">
                             <i class="fa-solid fa-microphone text-xs"></i>
                         </button>
@@ -194,9 +198,9 @@
                     <label class="block text-xs font-medium text-slate-400 mb-1.5">شماره شبا - بدون IR (اختیاری)</label>
                     <div class="relative flex items-center">
                         <span class="absolute right-3 text-slate-500 font-bold text-xs">IR</span>
-                        <input type="text" id="inputIban" inputmode="numeric" maxlength="24" placeholder="24 رقم شماره شبا"
+                        <input type="text" id="inputIban" inputmode="numeric" maxlength="24" placeholder="۲۴ رقم شماره شبا"
                             class="w-full bg-slate-950 border border-slate-800 rounded-xl pr-9 pl-11 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 force-ltr">
-                        <button type="button" id="btnVoiceIban" onclick="startVoiceInput('iban')" title="ورودی صوتی"
+                        <button type="button" id="btnVoiceIban" onclick="startVoiceInput('iban')" title="ورودی صوتی هم‌زمان"
                             class="absolute left-1.5 w-8 h-8 rounded-lg bg-amber-600/20 text-amber-400 hover:bg-amber-600 hover:text-white flex items-center justify-center transition-all">
                             <i class="fa-solid fa-microphone text-xs"></i>
                         </button>
@@ -331,32 +335,32 @@
                         <div class="flex items-center justify-between bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
                             <span class="text-slate-400">شماره کارت:</span>
                             <span class="force-ltr text-slate-200">${card.cardNumber}</span>
-                            <button onclick="copyToClipboard('${card.cardNumber.replace(/\s/g, '')}', 'کارت')" class="text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-lg">کپی</button>
+                            <button onclick="copyToClipboard('${card.cardNumber.replace(/\s/g, '')}', 'شماره کارت')" class="text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-lg">کپی</button>
                         </div>
                         ${card.account ? `
                         <div class="flex items-center justify-between bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
                             <span class="text-slate-400">حساب:</span>
                             <span class="force-ltr text-slate-200">${card.account}</span>
-                            <button onclick="copyToClipboard('${card.account}', 'حساب')" class="text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg">کپی</button>
+                            <button onclick="copyToClipboard('${card.account}', 'شماره حساب')" class="text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg">کپی</button>
                         </div>` : ''}
                         ${card.iban ? `
                         <div class="flex items-center justify-between bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
                             <span class="text-slate-400">شبا:</span>
                             <span class="force-ltr text-slate-200">IR${card.iban}</span>
-                            <button onclick="copyToClipboard('IR${card.iban}', 'شبا')" class="text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-lg">کپی</button>
+                            <button onclick="copyToClipboard('IR${card.iban}', 'شماره شبا')" class="text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-lg">کپی</button>
                         </div>` : ''}
                     </div>
 
                     <div class="flex justify-between pt-2 border-t border-slate-800 text-xs text-slate-400">
-                        <button onclick="editCard(${realIndex})"><i class="fa-solid fa-pen"></i> ویرایش</button>
-                        <button onclick="deleteCard(${realIndex})" class="text-rose-400"><i class="fa-solid fa-trash"></i> حذف</button>
+                        <button onclick="editCard(${realIndex})"><i class="fa-solid fa-pen"></i> ویرایش کارت</button>
+                        <button onclick="deleteCard(${realIndex})" class="text-rose-400"><i class="fa-solid fa-trash"></i> حذف کارت</button>
                     </div>
                 `;
                 listEl.appendChild(cardWrapper);
             });
         }
 
-        // تبدیل اعداد فارسی/عربی و کلمات به عدد انگلیسی
+        // تبدیل تبدیل اعداد و کلمات رایج به اعداد انگلیسی
         function convertPersianToDigits(str) {
             const p2e = {'۰':'0','۱':'1','۲':'2','۳':'3','۴':'4','۵':'5','۶':'6','۷':'7','۸':'8','۹':'9'};
             const a2e = {'٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9'};
@@ -383,36 +387,34 @@
 
             recognition = new SpeechRecognition();
             recognition.lang = 'fa-IR';
-            recognition.continuous = false;
-            recognition.interimResults = false;
+            recognition.continuous = true;
+            recognition.interimResults = true; // نمایش زنده هم‌زمان
 
             btn.classList.add('listening');
-            showToast('در حال گوش دادن... صحبت کنید');
+            showToast('در حال شنیدن... بگوئید تا تایپ شود');
 
             recognition.onresult = (event) => {
-                const speechResult = event.results[0][0].transcript;
-                btn.classList.remove('listening');
+                let currentText = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    currentText += event.results[i][0].transcript;
+                }
 
                 if (targetField === 'card') {
-                    const digits = convertPersianToDigits(speechResult);
+                    const digits = convertPersianToDigits(currentText);
                     const input = document.getElementById('inputCardNumber');
                     input.value = formatCardNumber(digits);
                     onCardNumberInput(input);
-                    showToast('شماره کارت دریافت شد');
                 } else if (targetField === 'iban') {
-                    const digits = convertPersianToDigits(speechResult);
+                    const digits = convertPersianToDigits(currentText);
                     document.getElementById('inputIban').value = digits.slice(0, 24);
-                    showToast('شماره شبا دریافت شد');
                 } else if (targetField === 'holder') {
-                    document.getElementById('inputHolder').value = speechResult;
-                    document.getElementById('previewHolder').innerText = speechResult;
-                    showToast('نام صاحب کارت دریافت شد');
+                    document.getElementById('inputHolder').value = currentText;
+                    document.getElementById('previewHolder').innerText = currentText || '--- ---';
                 }
             };
 
-            recognition.onerror = (event) => {
+            recognition.onerror = () => {
                 btn.classList.remove('listening');
-                showToast('صدا تشخیص داده نشد، دوباره امتحان کنید');
             };
 
             recognition.onend = () => {
@@ -433,6 +435,7 @@
         }
 
         function closeModal() {
+            if (recognition) { recognition.stop(); }
             document.getElementById('cardModal').classList.add('hidden');
         }
 
@@ -445,7 +448,7 @@
             const iban = document.getElementById('inputIban').value.replace(/\D/g, '');
 
             if (number.length < 19) {
-                alert('شماره کارت باید ۱۶ رقم کامل باشد.');
+                alert('لطفاً ۱۶ رقم شماره کارت را کامل وارد کنید.');
                 return;
             }
 
@@ -456,6 +459,7 @@
 
             saveToStorage();
             closeModal();
+            showToast('اطلاعات کارت ذخیره شد');
         }
 
         function editCard(index) {
@@ -471,9 +475,10 @@
         }
 
         function deleteCard(index) {
-            if (confirm('کارت حذف شود؟')) {
+            if (confirm('آیا از حذف این کارت اطمینان دارید؟')) {
                 cards.splice(index, 1);
                 saveToStorage();
+                showToast('کارت با موفقیت حذف شد');
             }
         }
 
