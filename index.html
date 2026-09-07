@@ -24,9 +24,12 @@
 
     <style>
         * {
-            font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, sans-serif !important;
             -webkit-tap-highlight-color: transparent;
             user-select: none;
+        }
+        input, button, select, textarea {
+            font-family: 'Vazirmatn', sans-serif !important;
         }
         body {
             background-color: #0f172a;
@@ -78,7 +81,10 @@
         
         .scan-overlay {
             border: 2px dashed #6366f1;
-            box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.75);
+            box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.85);
+        }
+        .num-font {
+            font-family: monospace, 'Vazirmatn' !important;
         }
     </style>
 </head>
@@ -105,7 +111,7 @@
     <div id="iosBanner" class="hidden w-full max-w-md mb-4 p-3.5 rounded-2xl bg-indigo-950/80 border border-indigo-500/30 text-xs text-indigo-200 flex items-center justify-between gap-3">
         <div class="flex items-center gap-2">
             <i class="fa-solid fa-arrow-up-from-bracket text-base text-indigo-400"></i>
-            <span>برای نصب اپلیکیشن رو آیفون، دکمه <b>Share</b> و سپس <b>Add to Home Screen</b> را بزنید.</span>
+            <span>برای نصب اپلیکیشن روی آیفون، دکمه <b>Share</b> و سپس <b>Add to Home Screen</b> را بزنید.</span>
         </div>
         <button type="button" onclick="closeIosBanner()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-sm"></i></button>
     </div>
@@ -155,7 +161,7 @@
                         <span id="previewBankName" class="font-extrabold text-sm tracking-wide opacity-90">کارت بانکی</span>
                         <div class="card-chip"></div>
                     </div>
-                    <div id="previewNumber" class="text-lg font-mono font-bold tracking-widest text-center dir-ltr z-10 my-2">
+                    <div id="previewNumber" class="text-lg num-font font-bold tracking-widest text-center ltr z-10 my-2">
                         •••• •••• •••• ••••
                     </div>
                     <div class="flex justify-between items-end z-10 text-xs">
@@ -176,7 +182,7 @@
                     <input type="text" id="inputCardNumber" inputmode="numeric" maxlength="19" required
                         placeholder="6037 99xx xxxx xxxx"
                         oninput="onCardNumberInput(this)"
-                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-100 font-mono text-sm focus:outline-none focus:border-indigo-500 dir-ltr text-right">
+                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-100 num-font text-sm focus:outline-none focus:border-indigo-500 ltr text-left">
                 </div>
 
                 <div>
@@ -190,15 +196,15 @@
                     <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1.5">شماره حساب (اختیاری)</label>
                         <input type="text" id="inputAccount" inputmode="numeric" placeholder="مثال: 0102030405001"
-                            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-100 font-mono text-sm focus:outline-none focus:border-indigo-500 dir-ltr text-right">
+                            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-100 num-font text-sm focus:outline-none focus:border-indigo-500 ltr text-left">
                     </div>
 
                     <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1.5">شماره شبا - بدون IR (اختیاری)</label>
                         <div class="relative flex items-center">
-                            <span class="absolute left-3 text-slate-500 font-mono text-xs">IR</span>
+                            <span class="absolute left-3 text-slate-500 num-font text-xs">IR</span>
                             <input type="text" id="inputIban" inputmode="numeric" maxlength="24" placeholder="24 رقم شماره شبا"
-                                class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3.5 py-2.5 text-slate-100 font-mono text-sm focus:outline-none focus:border-indigo-500 dir-ltr text-right">
+                                class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3.5 py-2.5 text-slate-100 num-font text-sm focus:outline-none focus:border-indigo-500 ltr text-left">
                         </div>
                     </div>
                 </div>
@@ -232,7 +238,7 @@
             <video id="videoFeed" autoplay playsinline muted class="w-full h-full object-cover"></video>
             
             <div class="absolute w-[85%] aspect-[1.586/1] rounded-2xl scan-overlay pointer-events-none flex flex-col justify-between p-4">
-                <span class="text-[11px] text-indigo-300 bg-slate-900/80 px-2 py-0.5 rounded self-center">کارت را داخل این کادر قرار دهید</span>
+                <span class="text-[11px] text-indigo-300 bg-slate-900/80 px-2 py-0.5 rounded self-center">کارت را به صورت افقی و کاملاً شفاف نگه دارید</span>
                 <div class="h-0.5 w-full bg-indigo-500/50 animate-pulse"></div>
             </div>
         </div>
@@ -258,26 +264,26 @@
 
     <script>
         const BANK_DATA = {
-            "603799": { name: "بانک ملی ایران", bg: "linear-gradient(135deg, #0f3854, #1a5b88)", textColor: "#ffffff" },
-            "610433": { name: "بانک ملت", bg: "linear-gradient(135deg, #a71d2a, #e53935)", textColor: "#ffffff" },
-            "603769": { name: "بانک صادرات", bg: "linear-gradient(135deg, #0a2540, #1e4976)", textColor: "#ffffff" },
-            "621986": { name: "بانک سامان", bg: "linear-gradient(135deg, #006680, #00a8cc)", textColor: "#ffffff" },
-            "502229": { name: "بانک پاسارگاد", bg: "linear-gradient(135deg, #1c1917, #d97706)", textColor: "#ffffff" },
-            "627353": { name: "بانک تجارت", bg: "linear-gradient(135deg, #154c79, #2071b5)", textColor: "#ffffff" },
-            "589210": { name: "بانک سپه", bg: "linear-gradient(135deg, #b45309, #f59e0b)", textColor: "#ffffff" },
-            "622106": { name: "بانک پارسیان", bg: "linear-gradient(135deg, #701a75, #a21caf)", textColor: "#ffffff" },
-            "639347": { name: "بانک پارسیان", bg: "linear-gradient(135deg, #701a75, #a21caf)", textColor: "#ffffff" },
-            "504172": { name: "بانک رسالت", bg: "linear-gradient(135deg, #0f766e, #14b8a6)", textColor: "#ffffff" },
-            "636214": { name: "بانک آینده", bg: "linear-gradient(135deg, #4c1d95, #7c3aed)", textColor: "#ffffff" },
-            "603770": { name: "بانک کشاورزی", bg: "linear-gradient(135deg, #14532d, #16a34a)", textColor: "#ffffff" },
-            "628023": { name: "بانک مسکن", bg: "linear-gradient(135deg, #c2410c, #ea580c)", textColor: "#ffffff" },
-            "505785": { name: "بانک ایران زمین", bg: "linear-gradient(135deg, #581c87, #9333ea)", textColor: "#ffffff" },
-            "627412": { name: "بانک اقتصاد نوین", bg: "linear-gradient(135deg, #831843, #db2777)", textColor: "#ffffff" },
-            "639370": { name: "بانک مهر ایران", bg: "linear-gradient(135deg, #065f46, #10b981)", textColor: "#ffffff" },
-            "502908": { name: "توسعه تعاون", bg: "linear-gradient(135deg, #1e3a8a, #3b82f6)", textColor: "#ffffff" }
+            "603799": { name: "بانک ملی ایران", bg: "linear-gradient(135deg, #0f3854, #1a5b88)" },
+            "610433": { name: "بانک ملت", bg: "linear-gradient(135deg, #a71d2a, #e53935)" },
+            "603769": { name: "بانک صادرات", bg: "linear-gradient(135deg, #0a2540, #1e4976)" },
+            "621986": { name: "بانک سامان", bg: "linear-gradient(135deg, #006680, #00a8cc)" },
+            "502229": { name: "بانک پاسارگاد", bg: "linear-gradient(135deg, #1c1917, #d97706)" },
+            "627353": { name: "بانک تجارت", bg: "linear-gradient(135deg, #154c79, #2071b5)" },
+            "589210": { name: "بانک سپه", bg: "linear-gradient(135deg, #b45309, #f59e0b)" },
+            "622106": { name: "بانک پارسیان", bg: "linear-gradient(135deg, #701a75, #a21caf)" },
+            "639347": { name: "بانک پارسیان", bg: "linear-gradient(135deg, #701a75, #a21caf)" },
+            "504172": { name: "بانک رسالت", bg: "linear-gradient(135deg, #0f766e, #14b8a6)" },
+            "636214": { name: "بانک آینده", bg: "linear-gradient(135deg, #4c1d95, #7c3aed)" },
+            "603770": { name: "بانک کشاورزی", bg: "linear-gradient(135deg, #14532d, #16a34a)" },
+            "628023": { name: "بانک مسکن", bg: "linear-gradient(135deg, #c2410c, #ea580c)" },
+            "505785": { name: "بانک ایران زمین", bg: "linear-gradient(135deg, #581c87, #9333ea)" },
+            "627412": { name: "بانک اقتصاد نوین", bg: "linear-gradient(135deg, #831843, #db2777)" },
+            "639370": { name: "بانک مهر ایران", bg: "linear-gradient(135deg, #065f46, #10b981)" },
+            "502908": { name: "توسعه تعاون", bg: "linear-gradient(135deg, #1e3a8a, #3b82f6)" }
         };
 
-        const DEFAULT_BANK = { name: "کارت بانکی", bg: "linear-gradient(135deg, #1e293b, #334155)", textColor: "#ffffff" };
+        const DEFAULT_BANK = { name: "کارت بانکی", bg: "linear-gradient(135deg, #1e293b, #334155)" };
 
         let cards = [];
         let videoStream = null;
@@ -352,7 +358,7 @@
                             <span class="font-extrabold text-sm tracking-wide opacity-95">${bank.name}</span>
                             <div class="card-chip"></div>
                         </div>
-                        <div class="text-xl font-mono font-bold tracking-widest text-center dir-ltr z-10 my-3 drop-shadow">
+                        <div class="text-xl num-font font-bold tracking-widest text-center ltr z-10 my-3 drop-shadow">
                             ${card.cardNumber}
                         </div>
                         <div class="flex justify-between items-end z-10 text-xs">
@@ -368,7 +374,7 @@
                             <div class="flex items-center gap-2 overflow-hidden">
                                 <i class="fa-solid fa-credit-card text-indigo-400"></i>
                                 <span class="text-slate-400">کارت:</span>
-                                <span class="font-mono dir-ltr text-slate-200">${card.cardNumber}</span>
+                                <span class="num-font ltr text-slate-200">${card.cardNumber}</span>
                             </div>
                             <button type="button" onclick="copyToClipboard('${card.cardNumber.replace(/\s/g, '')}', 'شماره کارت')" class="bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600 hover:text-white px-2.5 py-1 rounded-lg transition-all font-medium">
                                 کپی
@@ -380,7 +386,7 @@
                             <div class="flex items-center gap-2 overflow-hidden">
                                 <i class="fa-solid fa-building-columns text-emerald-400"></i>
                                 <span class="text-slate-400">حساب:</span>
-                                <span class="font-mono text-slate-200">${card.account}</span>
+                                <span class="num-font ltr text-slate-200">${card.account}</span>
                             </div>
                             <button type="button" onclick="copyToClipboard('${card.account}', 'شماره حساب')" class="bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600 hover:text-white px-2.5 py-1 rounded-lg transition-all font-medium">
                                 کپی
@@ -392,7 +398,7 @@
                             <div class="flex items-center gap-2 overflow-hidden">
                                 <i class="fa-solid fa-money-bill-transfer text-amber-400"></i>
                                 <span class="text-slate-400">شبا:</span>
-                                <span class="font-mono dir-ltr text-slate-200">IR${card.iban}</span>
+                                <span class="num-font ltr text-slate-200">IR${card.iban}</span>
                             </div>
                             <button type="button" onclick="copyToClipboard('IR${card.iban}', 'شماره شبا')" class="bg-amber-600/20 text-amber-400 hover:bg-amber-600 hover:text-white px-2.5 py-1 rounded-lg transition-all font-medium">
                                 کپی
@@ -435,11 +441,11 @@
 
             try {
                 videoStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+                    video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
                 });
                 video.srcObject = videoStream;
                 scannerModal.classList.remove('hidden');
-                scanStatus.innerText = 'کارت را در کادر قرار داده و دکمه اسکن را بزنید.';
+                scanStatus.innerText = 'کارت را صاف روبه‌روی دوربین بگیرید و دکمه اسکن را بزنید.';
             } catch (err) {
                 alert('دسترسی به دوربین برقرار نشد. لطفاً مجوز دوربین را در مرورگر تایید کنید.');
             }
@@ -459,32 +465,53 @@
             const status = document.getElementById('scanStatus');
             const btn = document.getElementById('btnCapture');
 
-            canvas.width = video.videoWidth || 640;
-            canvas.height = video.videoHeight || 480;
+            canvas.width = video.videoWidth || 1280;
+            canvas.height = video.videoHeight || 720;
             const ctx = canvas.getContext('2d');
+            
+            // Draw video frame
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            status.innerText = 'در حال آنالیز و خواندن اطلاعات کارت...';
+            // Pre-process image: Increase contrast & convert to grayscale for OCR accuracy
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const d = imgData.data;
+            for (let i = 0; i < d.length; i += 4) {
+                let v = (0.2126 * d[i] + 0.7152 * d[i+1] + 0.0722 * d[i+2]);
+                v = v > 120 ? 255 : 0; // High contrast threshold
+                d[i] = d[i+1] = d[i+2] = v;
+            }
+            ctx.putImageData(imgData, 0, 0);
+
+            status.innerText = 'در حال تحلیل هوشمند تصویر...';
             btn.disabled = true;
             btn.classList.add('opacity-50');
 
             try {
-                const { data: { text } } = await Tesseract.recognize(canvas, 'eng', {
-                    logger: m => {
-                        if(m.status === 'recognizing text') {
-                            status.innerText = `در حال اسکن... ${Math.round(m.progress * 100)}%`;
-                        }
-                    }
+                const worker = await Tesseract.createWorker('eng');
+                await worker.setParameters({
+                    tessedit_char_whitelist: '0123456789IRir-',
                 });
 
-                const digitsOnly = text.replace(/\D/g, '');
-                const cardMatch = digitsOnly.match(/\d{16}/);
-                const ibanMatch = text.match(/IR\s*?(\d{24})/i) || text.match(/(\d{24})/);
+                const { data: { text } } = await worker.recognize(canvas);
+                await worker.terminate();
+
+                const cleanText = text.replace(/[^0-9a-zA-Z]/g, '');
+
+                // Extract Card Number (16 Digits)
+                let cardMatch = cleanText.match(/\d{16}/);
+                
+                // Extract IBAN (24 Digits)
+                let ibanMatch = text.match(/IR\s*?(\d{24})/i) || cleanText.match(/\d{24}/);
+
+                // Extract Account Number (9 to 18 Digits)
+                let accountMatch = cleanText.match(/\d{9,15}/);
 
                 let found = false;
 
                 if (cardMatch) {
-                    const formatted = formatCardNumber(cardMatch[0]);
+                    let num = cardMatch[0];
+                    // Fix LTR / RTL reversal if needed
+                    const formatted = formatCardNumber(num);
                     document.getElementById('inputCardNumber').value = formatted;
                     onCardNumberInput(document.getElementById('inputCardNumber'));
                     found = true;
@@ -498,15 +525,20 @@
                     }
                 }
 
+                if (accountMatch && accountMatch[0] !== cardMatch?.[0]) {
+                    document.getElementById('inputAccount').value = accountMatch[0];
+                    found = true;
+                }
+
                 if (found) {
-                    showToast('اطلاعات با موفقیت استخراج شد');
+                    showToast('اطلاعات کارت اسکن شد');
                     closeScanner();
                     openAddModal(false);
                 } else {
-                    status.innerText = 'شماره کارتی تشخیص داده نشد. زاویه نور را تنظیم و دوباره تلاش کنید.';
+                    status.innerText = 'تصویر ناواضح بود. کارت را دقیق‌تر روبه‌روی نور بگیرید.';
                 }
             } catch (e) {
-                status.innerText = 'خطا در فرآیند اسکن. دوباره امتحان کنید.';
+                status.innerText = 'خطا در فرآیند پردازش تصویر.';
             } finally {
                 btn.disabled = false;
                 btn.classList.remove('opacity-50');
