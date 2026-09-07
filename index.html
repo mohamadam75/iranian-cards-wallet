@@ -83,7 +83,7 @@
 <body class="min-h-screen flex flex-col items-center p-4 antialiased">
 
     <!-- Header -->
-    <header class="w-full max-w-md sticky top-0 z-30 pt-4 pb-3 mb-4 glass-panel rounded-2xl px-5 flex items-center justify-between shadow-lg">
+    <header class="w-full max-w-md sticky top-0 z-30 pt-4 pb-3 mb-3 glass-panel rounded-2xl px-5 flex items-center justify-between shadow-lg">
         <div class="flex items-center space-x-3 space-x-reverse">
             <div class="w-10 h-10 rounded-xl bg-indigo-600/30 text-indigo-400 flex items-center justify-center text-xl font-bold border border-indigo-500/20">
                 <i class="fa-solid fa-wallet"></i>
@@ -98,6 +98,15 @@
             <span>کارت جدید</span>
         </button>
     </header>
+
+    <!-- Search Input -->
+    <div class="w-full max-w-md mb-4">
+        <div class="relative flex items-center">
+            <i class="fa-solid fa-magnifying-glass absolute right-3.5 text-slate-500 text-sm"></i>
+            <input type="text" id="searchInput" oninput="renderCards()" placeholder="جستجو بر اساس نام بانک، نام شخص یا شماره کارت..."
+                class="w-full bg-slate-900 border border-slate-800 rounded-xl pr-10 pl-4 py-2.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+        </div>
+    </div>
 
     <!-- Cards List -->
     <main id="cardsList" class="w-full max-w-md flex flex-col gap-5"></main>
@@ -128,11 +137,6 @@
                 </button>
             </div>
 
-            <button type="button" onclick="openScanner()" class="w-full mb-4 bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-indigo-500/30 py-3 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2">
-                <i class="fa-solid fa-camera text-indigo-400 text-sm"></i>
-                <span>اسکن اتوماتیک با دوربین</span>
-            </button>
-
             <!-- Card Preview -->
             <div class="mb-5">
                 <div id="previewCard" class="bank-card p-5 text-white flex flex-col justify-between shadow-md" style="background: linear-gradient(135deg, #1e293b, #334155);">
@@ -157,12 +161,19 @@
             <form id="cardForm" onsubmit="handleSaveCard(event)" class="space-y-4">
                 <input type="hidden" id="cardId">
 
+                <!-- Card Number with direct camera scan button -->
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1.5">شماره کارت (۱۶ رقم)</label>
-                    <input type="text" id="inputCardNumber" inputmode="numeric" maxlength="19" required
-                        placeholder="XXXX XXXX XXXX XXXX"
-                        oninput="onCardNumberInput(this)"
-                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 force-ltr">
+                    <div class="relative flex items-center">
+                        <input type="text" id="inputCardNumber" inputmode="numeric" maxlength="19" required
+                            placeholder="XXXX XXXX XXXX XXXX"
+                            oninput="onCardNumberInput(this)"
+                            class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-11 pr-3.5 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 force-ltr">
+                        <button type="button" onclick="openScanner('card')" title="اسکن شماره کارت"
+                            class="absolute left-1.5 w-8 h-8 rounded-lg bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600 hover:text-white flex items-center justify-center transition-all">
+                            <i class="fa-solid fa-camera text-xs"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div>
@@ -178,12 +189,17 @@
                         class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 force-ltr">
                 </div>
 
+                <!-- IBAN with direct camera scan button -->
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1.5">شماره شبا - بدون IR (اختیاری)</label>
                     <div class="relative flex items-center">
-                        <span class="absolute left-3 text-slate-500 font-bold text-xs">IR</span>
+                        <span class="absolute right-3 text-slate-500 font-bold text-xs">IR</span>
                         <input type="text" id="inputIban" inputmode="numeric" maxlength="24" placeholder="24 رقم شماره شبا"
-                            class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3.5 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 force-ltr">
+                            class="w-full bg-slate-950 border border-slate-800 rounded-xl pr-9 pl-11 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 force-ltr">
+                        <button type="button" onclick="openScanner('iban')" title="اسکن شماره شبا"
+                            class="absolute left-1.5 w-8 h-8 rounded-lg bg-amber-600/20 text-amber-400 hover:bg-amber-600 hover:text-white flex items-center justify-center transition-all">
+                            <i class="fa-solid fa-camera text-xs"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -198,9 +214,9 @@
     <!-- Auto Scanner Modal -->
     <div id="scannerModal" class="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-between p-4 hidden">
         <div class="w-full max-w-md flex items-center justify-between z-20 pt-2">
-            <span class="text-sm font-bold text-white flex items-center gap-2">
+            <span id="scanTitle" class="text-sm font-bold text-white flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                اسکن خودکار...
+                اسکن با دوربین...
             </span>
             <button type="button" onclick="closeScanner()" class="w-9 h-9 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center">
                 <i class="fa-solid fa-xmark"></i>
@@ -209,7 +225,7 @@
 
         <div class="relative w-full max-w-md flex-1 flex items-center justify-center overflow-hidden my-4 rounded-2xl">
             <video id="videoFeed" autoplay playsinline muted class="w-full h-full object-cover"></video>
-            <div class="absolute w-[85%] aspect-[1.586/1] rounded-2xl border-2 border-indigo-500 pointer-events-none overflow-hidden shadow-[0_0_0_9999px_rgba(15,23,42,0.75)]">
+            <div id="scanBox" class="absolute w-[85%] aspect-[1.586/1] rounded-2xl border-2 border-indigo-500 pointer-events-none overflow-hidden shadow-[0_0_0_9999px_rgba(15,23,42,0.75)]">
                 <div class="scan-line"></div>
             </div>
         </div>
@@ -218,7 +234,7 @@
 
         <div class="w-full max-w-md flex flex-col gap-2 z-20 pb-6 text-center">
             <p id="scanStatus" class="text-xs text-indigo-300 font-semibold bg-indigo-950/80 py-2 px-4 rounded-full border border-indigo-500/30">
-                کارت را جلوی دوربین نگه دارید...
+                کارت را کاملاً داخل کادر نگه دارید...
             </p>
         </div>
     </div>
@@ -254,6 +270,7 @@
         let scanInterval = null;
         let isProcessing = false;
         let tesseractWorker = null;
+        let scanTargetType = 'card'; // 'card' or 'iban'
 
         window.addEventListener('DOMContentLoaded', () => {
             const saved = localStorage.getItem('my_bank_cards');
@@ -296,11 +313,21 @@
         function renderCards() {
             const listEl = document.getElementById('cardsList');
             const emptyEl = document.getElementById('emptyState');
+            const searchQuery = document.getElementById('searchInput')?.value.trim().toLowerCase() || '';
+
             document.getElementById('cardCountText').innerText = `${cards.length} کارت ثبت شده`;
-            
             listEl.innerHTML = '';
 
-            if (cards.length === 0) {
+            const filteredCards = cards.filter(card => {
+                const bank = getBankInfo(card.cardNumber);
+                const matchBank = bank.name.toLowerCase().includes(searchQuery);
+                const matchHolder = card.holder.toLowerCase().includes(searchQuery);
+                const matchNumber = card.cardNumber.replace(/\s/g, '').includes(searchQuery);
+                const matchIban = (card.iban || '').includes(searchQuery);
+                return matchBank || matchHolder || matchNumber || matchIban;
+            });
+
+            if (filteredCards.length === 0) {
                 emptyEl.classList.remove('hidden');
                 emptyEl.classList.add('flex');
                 return;
@@ -308,7 +335,8 @@
                 emptyEl.classList.add('hidden');
             }
 
-            cards.forEach((card, index) => {
+            filteredCards.forEach((card) => {
+                const realIndex = cards.indexOf(card);
                 const bank = getBankInfo(card.cardNumber);
                 const cardWrapper = document.createElement('div');
                 cardWrapper.className = 'glass-panel rounded-3xl p-4 flex flex-col gap-3 relative border border-slate-800';
@@ -335,35 +363,47 @@
                         <div class="flex items-center justify-between bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
                             <span class="text-slate-400">شماره کارت:</span>
                             <span class="force-ltr text-slate-200">${card.cardNumber}</span>
-                            <button onclick="copyToClipboard('${card.cardNumber.replace(/\s/g, '')}', 'کارت')" class="text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded">کپی</button>
+                            <button onclick="copyToClipboard('${card.cardNumber.replace(/\s/g, '')}', 'کارت')" class="text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-lg">کپی</button>
                         </div>
                         ${card.account ? `
                         <div class="flex items-center justify-between bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
                             <span class="text-slate-400">حساب:</span>
                             <span class="force-ltr text-slate-200">${card.account}</span>
-                            <button onclick="copyToClipboard('${card.account}', 'حساب')" class="text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded">کپی</button>
+                            <button onclick="copyToClipboard('${card.account}', 'حساب')" class="text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg">کپی</button>
                         </div>` : ''}
                         ${card.iban ? `
                         <div class="flex items-center justify-between bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
                             <span class="text-slate-400">شبا:</span>
                             <span class="force-ltr text-slate-200">IR${card.iban}</span>
-                            <button onclick="copyToClipboard('IR${card.iban}', 'شبا')" class="text-amber-400 bg-amber-500/10 px-2 py-1 rounded">کپی</button>
+                            <button onclick="copyToClipboard('IR${card.iban}', 'شبا')" class="text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-lg">کپی</button>
                         </div>` : ''}
                     </div>
 
                     <div class="flex justify-between pt-2 border-t border-slate-800 text-xs text-slate-400">
-                        <button onclick="editCard(${index})"><i class="fa-solid fa-pen"></i> ویرایش</button>
-                        <button onclick="deleteCard(${index})" class="text-rose-400"><i class="fa-solid fa-trash"></i> حذف</button>
+                        <button onclick="editCard(${realIndex})"><i class="fa-solid fa-pen"></i> ویرایش</button>
+                        <button onclick="deleteCard(${realIndex})" class="text-rose-400"><i class="fa-solid fa-trash"></i> حذف</button>
                     </div>
                 `;
                 listEl.appendChild(cardWrapper);
             });
         }
 
-        async function openScanner() {
+        async function openScanner(targetType = 'card') {
+            scanTargetType = targetType;
             closeModal();
+            
             const scannerModal = document.getElementById('scannerModal');
             const video = document.getElementById('videoFeed');
+            const titleEl = document.getElementById('scanTitle');
+            const scanBox = document.getElementById('scanBox');
+
+            if (targetType === 'iban') {
+                titleEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span> اسکن اختصاصی شبا`;
+                scanBox.style.aspectRatio = "3.5 / 1";
+            } else {
+                titleEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> اسکن شماره کارت`;
+                scanBox.style.aspectRatio = "1.586 / 1";
+            }
 
             try {
                 videoStream = await navigator.mediaDevices.getUserMedia({
@@ -380,7 +420,7 @@
                 }
 
                 isProcessing = false;
-                scanInterval = setInterval(autoScanFrame, 600);
+                scanInterval = setInterval(autoScanFrame, 500);
 
             } catch (err) {
                 alert('دسترسی به دوربین داده نشد.');
@@ -391,6 +431,7 @@
             if (scanInterval) clearInterval(scanInterval);
             if (videoStream) videoStream.getTracks().forEach(track => track.stop());
             document.getElementById('scannerModal').classList.add('hidden');
+            openAddModal(false);
         }
 
         async function autoScanFrame() {
@@ -405,44 +446,63 @@
                 return;
             }
 
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            // برش اختصاصی ناحیه اسکن (Crop Region) جهت بالاترین دقت ممکن
+            const vW = video.videoWidth;
+            const vH = video.videoHeight;
+            
+            // محدوده وسط کادر
+            const cropW = vW * 0.8;
+            const cropH = scanTargetType === 'iban' ? vH * 0.25 : vH * 0.5;
+            const cropX = (vW - cropW) / 2;
+            const cropY = (vH - cropH) / 2;
 
-            // افزایش کنتراست تصویر فریم دوربین
-            let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            canvas.width = cropW;
+            canvas.height = cropH;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+
+            // افزایش کنتراست شدید (Thresholding) جهت حذف خطای 5 به جای 8
+            let imgData = ctx.getImageData(0, 0, cropW, cropH);
             let d = imgData.data;
             for (let i = 0; i < d.length; i += 4) {
                 let v = (d[i] + d[i + 1] + d[i + 2]) / 3;
-                v = v < 110 ? 0 : 255;
+                v = v < 120 ? 0 : 255;
                 d[i] = d[i + 1] = d[i + 2] = v;
             }
             ctx.putImageData(imgData, 0, 0);
 
             try {
                 const { data: { text } } = await tesseractWorker.recognize(canvas);
-                
-                // استخراج تمام اعداد فریم
-                const allNumbers = text.replace(/[^\d]/g, '');
+                const numbers = text.replace(/[^\d]/g, '');
 
-                // اعتبارسنجی با پیش‌شماره‌های اصلی بانک‌های ایران (مانند 589463 برای رفاه)
-                const validCardMatch = allNumbers.match(/(502229|639370|606373|589463|603799|610433|603769|621986|627353|589210|622106|504172|636214|603770|628023)\d{10}/);
-
-                if (validCardMatch) {
-                    if (navigator.vibrate) navigator.vibrate(200);
+                if (scanTargetType === 'card') {
+                    // جستجو برای کارت ۱۶ رقمی معتبر
+                    const validCardMatch = numbers.match(/(502229|639370|606373|589463|603799|610433|603769|621986|627353|589210|622106|504172|636214|603770|628023)\d{10}/);
                     
-                    document.getElementById('inputCardNumber').value = formatCardNumber(validCardMatch[0]);
-                    onCardNumberInput(document.getElementById('inputCardNumber'));
-                    
-                    closeScanner();
-                    openAddModal(false);
-                    showToast('کارت با موفقیت اسکن شد');
-                    isProcessing = false;
-                    return;
+                    if (validCardMatch) {
+                        if (navigator.vibrate) navigator.vibrate(200);
+                        document.getElementById('inputCardNumber').value = formatCardNumber(validCardMatch[0]);
+                        onCardNumberInput(document.getElementById('inputCardNumber'));
+                        closeScanner();
+                        showToast('شماره کارت با دقت اسکن شد');
+                        isProcessing = false;
+                        return;
+                    }
+                } else if (scanTargetType === 'iban') {
+                    // جستجو برای شبا (۲۴ رقم)
+                    const ibanMatch = numbers.match(/\d{24}/);
+                    if (ibanMatch) {
+                        if (navigator.vibrate) navigator.vibrate(200);
+                        document.getElementById('inputIban').value = ibanMatch[0];
+                        closeScanner();
+                        showToast('شماره شبا اسکن شد');
+                        isProcessing = false;
+                        return;
+                    }
                 }
             } catch (e) {
-                console.log("در حال پردازش...");
+                console.log("در حال خوانی...");
             }
 
             isProcessing = false;
