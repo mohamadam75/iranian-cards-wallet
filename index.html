@@ -12,7 +12,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- کتابخانه بسیار سبک و استاندارد ساخت QR کد واقعی -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
         * {
@@ -70,10 +75,12 @@
         .listening {
             animation: pulse-mic 1.2s infinite ease-in-out;
         }
-        #qrcode canvas {
+
+        /* استایل اختصاصی برای نمایش استاندارد QR کد */
+        #qrcode img, #qrcode canvas {
             margin: 0 auto;
             border-radius: 12px;
-            padding: 10px;
+            padding: 12px;
             background: #ffffff;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
@@ -135,9 +142,9 @@
                 </button>
             </div>
             
-            <p class="text-xs text-slate-400 mb-4">با اسکن این کد می‌توانید اطلاعات کارت را دریافت کنید.</p>
+            <p class="text-xs text-slate-400 mb-4">با اسکن این کد، اطلاعات کارت دریافت می‌شود.</p>
 
-            <div id="qrcode" class="flex justify-center my-4 min-h-[210px] items-center"></div>
+            <div id="qrcode" class="flex justify-center my-4 min-h-[220px] items-center"></div>
 
             <button type="button" onclick="closeQRModal()" class="w-full mt-4 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-xl text-xs font-semibold">
                 بستن
@@ -251,62 +258,6 @@
         <span id="toastMessage">کپی شد</span>
     </div>
 
-    <!-- موتور قدرتمند و ۱۰۰٪ استاندارد بومی QR کد بدون هیچ وابستگی -->
-    <script>
-        function createSimpleQRCode(text, containerId) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = '';
-
-            const canvas = document.createElement('canvas');
-            canvas.width = 200;
-            canvas.height = 200;
-            const ctx = canvas.getContext('2d');
-
-            // ساخت یک ساختار داده ساده بومی
-            const modules = 21;
-            const cellSize = Math.floor(200 / modules);
-            
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(0, 0, 200, 200);
-
-            // محاسبه هش برای الگوی یکتا برای متن
-            let hash = 0;
-            for (let i = 0; i < text.length; i++) {
-                hash = ((hash << 5) - hash) + text.charCodeAt(i);
-                hash |= 0;
-            }
-
-            // رسم خطوط و مربع‌های تثبیت QR کد استاندارد
-            function drawFinderPattern(x, y) {
-                ctx.fillStyle = '#0f172a';
-                ctx.fillRect(x * cellSize, y * cellSize, 7 * cellSize, 7 * cellSize);
-                ctx.fillStyle = '#FFFFFF';
-                ctx.fillRect((x + 1) * cellSize, (y + 1) * cellSize, 5 * cellSize, 5 * cellSize);
-                ctx.fillStyle = '#0f172a';
-                ctx.fillRect((x + 2) * cellSize, (y + 2) * cellSize, 3 * cellSize, 3 * cellSize);
-            }
-
-            drawFinderPattern(0, 0);
-            drawFinderPattern(modules - 7, 0);
-            drawFinderPattern(0, modules - 7);
-
-            // الگوی داده
-            ctx.fillStyle = '#0f172a';
-            for (let r = 0; r < modules; r++) {
-                for (let c = 0; c < modules; c++) {
-                    if ((r < 7 && c < 7) || (r < 7 && c >= modules - 7) || (r >= modules - 7 && c < 7)) continue;
-                    
-                    const bit = ((r * modules + c + hash) * 31) % 7;
-                    if (bit === 0 || bit === 2) {
-                        ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
-                    }
-                }
-            }
-
-            container.appendChild(canvas);
-        }
-    </script>
-
     <script>
         const BANK_DATA = {
             "606373": { name: "بانک مهر ایران", bg: "linear-gradient(135deg, #059669, #047857)", textColor: "text-white" },
@@ -330,6 +281,7 @@
 
         let cards = [];
         let recognition = null;
+        let qrCodeInstance = null;
 
         window.addEventListener('DOMContentLoaded', () => {
             const saved = localStorage.getItem('my_bank_cards');
@@ -460,7 +412,7 @@
             });
         }
 
-        // نمایش قطعی و تضمین‌شده QR کد
+        // تولید واقعی، استاندارد و دقیق QR کد
         function showSingleCardQR(index) {
             const card = cards[index];
             const bank = getBankInfo(card.cardNumber);
@@ -470,7 +422,18 @@
             let textData = `بانک: ${bank.name}\nصاحب کارت: ${card.holder}\nشماره کارت:\n${card.cardNumber}`;
             if(card.iban) textData += `\nشماره شبا:\nIR${card.iban}`;
 
-            createSimpleQRCode(textData, 'qrcode');
+            const container = document.getElementById('qrcode');
+            container.innerHTML = '';
+
+            // ایجاد الگوی کاملاً استاندارد QR کد
+            qrCodeInstance = new QRCode(container, {
+                text: textData,
+                width: 180,
+                height: 180,
+                colorDark : "#0f172a",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
 
             document.getElementById('qrModal').classList.remove('hidden');
         }
