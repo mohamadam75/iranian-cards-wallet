@@ -5,31 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>مدیریت کارت‌های بانکی</title>
     
-    <!-- PWA & WebApp tags for iOS Safari -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="کارت‌های من">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/893/893081.png">
     <meta name="theme-color" content="#0f172a">
 
-    <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Tesseract.js for OCR Scan -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
     <style>
         * {
-            font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, sans-serif !important;
+            font-family: 'Vazirmatn', sans-serif !important;
             -webkit-tap-highlight-color: transparent;
             user-select: none;
-        }
-        input, button, select, textarea {
-            font-family: 'Vazirmatn', sans-serif !important;
         }
         body {
             background-color: #0f172a;
@@ -48,10 +39,7 @@
             overflow: hidden;
             border-radius: 20px;
             box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.5);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .bank-card:active {
-            transform: scale(0.98);
+            transition: all 0.3s ease;
         }
         .card-chip {
             width: 42px;
@@ -59,38 +47,28 @@
             background: linear-gradient(135deg, #ffe082 0%, #ffb300 100%);
             border-radius: 6px;
             position: relative;
-            box-shadow: inset 0 0 2px rgba(0,0,0,0.3);
-        }
-        .card-chip::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: rgba(0,0,0,0.2);
         }
         .shimmer-effect {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(125deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0) 70%);
+            background: linear-gradient(125deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 70%);
             pointer-events: none;
+        }
+        .force-ltr {
+            direction: ltr !important;
+            text-align: left !important;
+            unicode-bidi: isolate !important;
+            font-family: 'Courier New', Courier, monospace !important;
+            font-weight: bold;
+            letter-spacing: 2px;
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        .scan-overlay {
-            border: 2px dashed #6366f1;
-            box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.85);
-        }
-        .num-font {
-            font-family: monospace, 'Vazirmatn' !important;
-        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center p-4 antialiased">
 
-    <!-- Header Bar -->
+    <!-- Header -->
     <header class="w-full max-w-md sticky top-0 z-30 pt-4 pb-3 mb-4 glass-panel rounded-2xl px-5 flex items-center justify-between shadow-lg">
         <div class="flex items-center space-x-3 space-x-reverse">
             <div class="w-10 h-10 rounded-xl bg-indigo-600/30 text-indigo-400 flex items-center justify-center text-xl font-bold border border-indigo-500/20">
@@ -101,40 +79,29 @@
                 <p class="text-xs text-slate-400" id="cardCountText">۰ کارت ثبت شده</p>
             </div>
         </div>
-        <button type="button" onclick="openAddModal()" class="bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-sm font-semibold flex items-center gap-1.5 transition-all shadow-lg shadow-indigo-600/30">
+        <button type="button" onclick="openAddModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-xl text-sm font-semibold flex items-center gap-1.5 shadow-lg shadow-indigo-600/30">
             <i class="fa-solid fa-plus text-xs"></i>
             <span>کارت جدید</span>
         </button>
     </header>
 
-    <!-- iOS Add to Home Screen Banner -->
-    <div id="iosBanner" class="hidden w-full max-w-md mb-4 p-3.5 rounded-2xl bg-indigo-950/80 border border-indigo-500/30 text-xs text-indigo-200 flex items-center justify-between gap-3">
-        <div class="flex items-center gap-2">
-            <i class="fa-solid fa-arrow-up-from-bracket text-base text-indigo-400"></i>
-            <span>برای نصب اپلیکیشن روی آیفون، دکمه <b>Share</b> و سپس <b>Add to Home Screen</b> را بزنید.</span>
-        </div>
-        <button type="button" onclick="closeIosBanner()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-sm"></i></button>
-    </div>
-
-    <!-- Cards Container / List -->
-    <main id="cardsList" class="w-full max-w-md flex flex-col gap-5">
-        <!-- Dynamic Cards Inserted Here -->
-    </main>
+    <!-- Cards List -->
+    <main id="cardsList" class="w-full max-w-md flex flex-col gap-5"></main>
 
     <!-- Empty State -->
     <div id="emptyState" class="hidden w-full max-w-md flex-col items-center justify-center py-16 px-4 text-center">
         <div class="w-20 h-20 rounded-full bg-slate-800/80 flex items-center justify-center text-slate-500 text-3xl mb-4 border border-slate-700/50">
             <i class="fa-regular fa-credit-card"></i>
         </div>
-        <h3 class="text-base font-semibold text-slate-300 mb-1">هنوز هیچ کارتی اضافه نکرده‌اید</h3>
-        <p class="text-xs text-slate-500 mb-6 max-w-xs">شماره کارت‌های خود را دستی یا با اسکن دوربین اضافه کنید.</p>
-        <button type="button" onclick="openAddModal()" class="bg-slate-800 hover:bg-slate-700 text-indigo-400 border border-indigo-500/30 px-5 py-2.5 rounded-xl text-sm font-medium transition-all">
+        <h3 class="text-base font-semibold text-slate-300 mb-1">کارت بانکی یافت نشد</h3>
+        <p class="text-xs text-slate-500 mb-6">برای افزودن کارت، دکمه زیر را فشار دهید.</p>
+        <button type="button" onclick="openAddModal()" class="bg-slate-800 text-indigo-400 border border-indigo-500/30 px-5 py-2.5 rounded-xl text-sm">
             افزودن اولین کارت
         </button>
     </div>
 
-    <!-- Modal Form (Add / Edit Card) -->
-    <div id="cardModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center hidden transition-all duration-300">
+    <!-- Modal Form -->
+    <div id="cardModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center hidden">
         <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto no-scrollbar">
             
             <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
@@ -142,18 +109,17 @@
                     <i class="fa-solid fa-credit-card text-indigo-400"></i>
                     <span>افزودن کارت جدید</span>
                 </h3>
-                <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center hover:text-white">
+                <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
-            <!-- Scan Button Option -->
-            <button type="button" onclick="openScanner()" class="w-full mb-4 bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-indigo-500/30 py-3 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-md">
+            <button type="button" onclick="openScanner()" class="w-full mb-4 bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-indigo-500/30 py-3 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2">
                 <i class="fa-solid fa-camera text-indigo-400 text-sm"></i>
-                <span>اسکن هوشمند کارت با دوربین</span>
+                <span>اسکن سریع با دوربین گوشی</span>
             </button>
 
-            <!-- Live Card Preview -->
+            <!-- Card Preview -->
             <div class="mb-5">
                 <div id="previewCard" class="bank-card p-5 text-white flex flex-col justify-between shadow-md" style="background: linear-gradient(135deg, #1e293b, #334155);">
                     <div class="shimmer-effect"></div>
@@ -161,28 +127,28 @@
                         <span id="previewBankName" class="font-extrabold text-sm tracking-wide opacity-90">کارت بانکی</span>
                         <div class="card-chip"></div>
                     </div>
-                    <div id="previewNumber" class="text-lg num-font font-bold tracking-widest text-center ltr z-10 my-2">
+                    <div id="previewNumber" class="text-lg force-ltr font-bold text-center z-10 my-2 tracking-widest">
                         •••• •••• •••• ••••
                     </div>
                     <div class="flex justify-between items-end z-10 text-xs">
                         <div>
-                            <div class="text-[10px] text-white/70">صاحب کارت</div>
+                            <div class="text-[10px] opacity-75">صاحب کارت</div>
                             <div id="previewHolder" class="font-semibold">--- ---</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Form Inputs -->
+            <!-- Form -->
             <form id="cardForm" onsubmit="handleSaveCard(event)" class="space-y-4">
                 <input type="hidden" id="cardId">
 
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1.5">شماره کارت (۱۶ رقم)</label>
                     <input type="text" id="inputCardNumber" inputmode="numeric" maxlength="19" required
-                        placeholder="6037 99xx xxxx xxxx"
+                        placeholder="XXXX XXXX XXXX XXXX"
                         oninput="onCardNumberInput(this)"
-                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-100 num-font text-sm focus:outline-none focus:border-indigo-500 ltr text-left">
+                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 force-ltr">
                 </div>
 
                 <div>
@@ -192,98 +158,89 @@
                         class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
                 </div>
 
-                <div class="grid grid-cols-1 gap-4">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1.5">شماره حساب (اختیاری)</label>
-                        <input type="text" id="inputAccount" inputmode="numeric" placeholder="مثال: 0102030405001"
-                            class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-100 num-font text-sm focus:outline-none focus:border-indigo-500 ltr text-left">
-                    </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1.5">شماره حساب (اختیاری)</label>
+                    <input type="text" id="inputAccount" inputmode="numeric" placeholder="مثال: 0102030405001"
+                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 force-ltr">
+                </div>
 
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1.5">شماره شبا - بدون IR (اختیاری)</label>
-                        <div class="relative flex items-center">
-                            <span class="absolute left-3 text-slate-500 num-font text-xs">IR</span>
-                            <input type="text" id="inputIban" inputmode="numeric" maxlength="24" placeholder="24 رقم شماره شبا"
-                                class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3.5 py-2.5 text-slate-100 num-font text-sm focus:outline-none focus:border-indigo-500 ltr text-left">
-                        </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1.5">شماره شبا - بدون IR (اختیاری)</label>
+                    <div class="relative flex items-center">
+                        <span class="absolute left-3 text-slate-500 font-bold text-xs">IR</span>
+                        <input type="text" id="inputIban" inputmode="numeric" maxlength="24" placeholder="24 رقم شماره شبا"
+                            class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3.5 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 force-ltr">
                     </div>
                 </div>
 
                 <div class="pt-3 flex gap-3">
-                    <button type="button" onclick="closeModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-3 rounded-xl text-sm font-semibold transition-all">
-                        انصراف
-                    </button>
-                    <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-indigo-600/30">
-                        ذخیره کارت
-                    </button>
+                    <button type="button" onclick="closeModal()" class="flex-1 bg-slate-800 text-slate-300 py-3 rounded-xl text-sm font-semibold">انصراف</button>
+                    <button type="submit" class="flex-1 bg-indigo-600 text-white py-3 rounded-xl text-sm font-semibold shadow-lg shadow-indigo-600/30">ذخیره کارت</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Scanner View Modal -->
+    <!-- Scanner Modal -->
     <div id="scannerModal" class="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-between p-4 hidden">
         <div class="w-full max-w-md flex items-center justify-between z-20 pt-2">
-            <span class="text-sm font-bold text-white flex items-center gap-2">
-                <i class="fa-solid fa-expand text-indigo-400"></i>
-                <span>اسکن کارت بانکی</span>
-            </span>
+            <span class="text-sm font-bold text-white">اسکن هوشمند کارت بانکی</span>
             <button type="button" onclick="closeScanner()" class="w-9 h-9 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
 
-        <!-- Camera View Area -->
         <div class="relative w-full max-w-md flex-1 flex items-center justify-center overflow-hidden my-4 rounded-2xl">
             <video id="videoFeed" autoplay playsinline muted class="w-full h-full object-cover"></video>
-            
-            <div class="absolute w-[85%] aspect-[1.586/1] rounded-2xl scan-overlay pointer-events-none flex flex-col justify-between p-4">
-                <span class="text-[11px] text-indigo-300 bg-slate-900/80 px-2 py-0.5 rounded self-center">کارت را به صورت افقی و کاملاً شفاف نگه دارید</span>
-                <div class="h-0.5 w-full bg-indigo-500/50 animate-pulse"></div>
-            </div>
+            <div class="absolute w-[85%] aspect-[1.586/1] rounded-2xl border-2 border-dashed border-indigo-500 pointer-events-none"></div>
         </div>
 
         <canvas id="scanCanvas" class="hidden"></canvas>
 
         <div class="w-full max-w-md flex flex-col gap-3 z-20 pb-4">
-            <div id="scanStatus" class="text-xs text-center text-slate-400 min-h-[20px]">
-                آماده برای اسکن...
-            </div>
-            <button type="button" onclick="captureAndScan()" id="btnCapture" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30">
-                <i class="fa-solid fa-camera"></i>
-                <span>اسکن و استخراج اطلاعات</span>
+            <div id="scanStatus" class="text-xs text-center text-slate-400">کارت را صاف جلوی دوربین بگیرید</div>
+            <button type="button" onclick="captureAndScan()" id="btnCapture" class="w-full bg-indigo-600 text-white py-3.5 rounded-xl font-semibold text-sm">
+                <i class="fa-solid fa-camera ml-1"></i> اسکن کارت
             </button>
         </div>
     </div>
 
     <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white px-4 py-2.5 rounded-full text-xs font-medium shadow-xl opacity-0 pointer-events-none transition-all duration-300 flex items-center gap-2">
-        <i class="fa-solid fa-circle-check"></i>
-        <span id="toastMessage">با موفقیت کپی شد</span>
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 text-white px-4 py-2.5 rounded-full text-xs font-medium shadow-xl opacity-0 pointer-events-none transition-all duration-300">
+        <span id="toastMessage">کپی شد</span>
     </div>
 
     <script>
         const BANK_DATA = {
-            "603799": { name: "بانک ملی ایران", bg: "linear-gradient(135deg, #0f3854, #1a5b88)" },
-            "610433": { name: "بانک ملت", bg: "linear-gradient(135deg, #a71d2a, #e53935)" },
-            "603769": { name: "بانک صادرات", bg: "linear-gradient(135deg, #0a2540, #1e4976)" },
-            "621986": { name: "بانک سامان", bg: "linear-gradient(135deg, #006680, #00a8cc)" },
-            "502229": { name: "بانک پاسارگاد", bg: "linear-gradient(135deg, #1c1917, #d97706)" },
-            "627353": { name: "بانک تجارت", bg: "linear-gradient(135deg, #154c79, #2071b5)" },
-            "589210": { name: "بانک سپه", bg: "linear-gradient(135deg, #b45309, #f59e0b)" },
-            "622106": { name: "بانک پارسیان", bg: "linear-gradient(135deg, #701a75, #a21caf)" },
-            "639347": { name: "بانک پارسیان", bg: "linear-gradient(135deg, #701a75, #a21caf)" },
-            "504172": { name: "بانک رسالت", bg: "linear-gradient(135deg, #0f766e, #14b8a6)" },
-            "636214": { name: "بانک آینده", bg: "linear-gradient(135deg, #4c1d95, #7c3aed)" },
-            "603770": { name: "بانک کشاورزی", bg: "linear-gradient(135deg, #14532d, #16a34a)" },
-            "628023": { name: "بانک مسکن", bg: "linear-gradient(135deg, #c2410c, #ea580c)" },
-            "505785": { name: "بانک ایران زمین", bg: "linear-gradient(135deg, #581c87, #9333ea)" },
-            "627412": { name: "بانک اقتصاد نوین", bg: "linear-gradient(135deg, #831843, #db2777)" },
-            "639370": { name: "بانک مهر ایران", bg: "linear-gradient(135deg, #065f46, #10b981)" },
-            "502908": { name: "توسعه تعاون", bg: "linear-gradient(135deg, #1e3a8a, #3b82f6)" }
+            // بانک مهر ایران - سبز زمردی
+            "606373": { name: "بانک مهر ایران", bg: "linear-gradient(135deg, #059669, #047857)", textColor: "text-white" },
+            "639370": { name: "بانک مهر ایران", bg: "linear-gradient(135deg, #059669, #047857)", textColor: "text-white" },
+            
+            // بانک رفاه کارگران - نقره‌ای متالیک
+            "589463": { name: "بانک رفاه کارگران", bg: "linear-gradient(135deg, #e2e8f0, #94a3b8)", textColor: "text-slate-900" },
+
+            // سایر بانک‌ها
+            "603799": { name: "بانک ملی ایران", bg: "linear-gradient(135deg, #0f3854, #1a5b88)", textColor: "text-white" },
+            "610433": { name: "بانک ملت", bg: "linear-gradient(135deg, #a71d2a, #e53935)", textColor: "text-white" },
+            "603769": { name: "بانک صادرات", bg: "linear-gradient(135deg, #0a2540, #1e4976)", textColor: "text-white" },
+            "621986": { name: "بانک سامان", bg: "linear-gradient(135deg, #006680, #00a8cc)", textColor: "text-white" },
+            "502229": { name: "بانک پاسارگاد", bg: "linear-gradient(135deg, #1c1917, #d97706)", textColor: "text-white" },
+            "627353": { name: "بانک تجارت", bg: "linear-gradient(135deg, #154c79, #2071b5)", textColor: "text-white" },
+            "589210": { name: "بانک سپه", bg: "linear-gradient(135deg, #b45309, #f59e0b)", textColor: "text-white" },
+            "622106": { name: "بانک پارسیان", bg: "linear-gradient(135deg, #701a75, #a21caf)", textColor: "text-white" },
+            "504172": { name: "بانک رسالت", bg: "linear-gradient(135deg, #0f766e, #14b8a6)", textColor: "text-white" },
+            "636214": { name: "بانک آینده", bg: "linear-gradient(135deg, #4c1d95, #7c3aed)", textColor: "text-white" },
+            "603770": { name: "بانک کشاورزی", bg: "linear-gradient(135deg, #14532d, #16a34a)", textColor: "text-white" },
+            "628023": { name: "بانک مسکن", bg: "linear-gradient(135deg, #c2410c, #ea580c)", textColor: "text-white" },
+            "505785": { name: "بانک ایران زمین", bg: "linear-gradient(135deg, #581c87, #9333ea)", textColor: "text-white" },
+            "627412": { name: "بانک اقتصاد نوین", bg: "linear-gradient(135deg, #831843, #db2777)", textColor: "text-white" },
+            "502908": { name: "توسعه تعاون", bg: "linear-gradient(135deg, #1e3a8a, #3b82f6)", textColor: "text-white" },
+            "627488": { name: "بانک کارآفرین", bg: "linear-gradient(135deg, #3f6212, #65a30d)", textColor: "text-white" },
+            "502806": { name: "بانک شهر", bg: "linear-gradient(135deg, #9f1239, #f43f5e)", textColor: "text-white" },
+            "505801": { name: "موسسه کوثر", bg: "linear-gradient(135deg, #374151, #4b5563)", textColor: "text-white" }
         };
 
-        const DEFAULT_BANK = { name: "کارت بانکی", bg: "linear-gradient(135deg, #1e293b, #334155)" };
+        const DEFAULT_BANK = { name: "کارت بانکی", bg: "linear-gradient(135deg, #1e293b, #334155)", textColor: "text-white" };
 
         let cards = [];
         let videoStream = null;
@@ -294,7 +251,6 @@
                 try { cards = JSON.parse(saved); } catch (e) { cards = []; }
             }
             renderCards();
-            checkIosBanner();
         });
 
         function saveToStorage() {
@@ -317,23 +273,21 @@
             const formatted = formatCardNumber(input.value);
             input.value = formatted;
             
-            const previewNum = document.getElementById('previewNumber');
-            previewNum.innerText = formatted || '•••• •••• •••• ••••';
+            document.getElementById('previewNumber').innerText = formatted || '•••• •••• •••• ••••';
 
             const bankInfo = getBankInfo(formatted);
             const previewCard = document.getElementById('previewCard');
-            const previewBankName = document.getElementById('previewBankName');
-
+            
             previewCard.style.background = bankInfo.bg;
-            previewBankName.innerText = bankInfo.name;
+            previewCard.className = `bank-card p-5 ${bankInfo.textColor} flex flex-col justify-between shadow-md`;
+            document.getElementById('previewBankName').innerText = bankInfo.name;
         }
 
         function renderCards() {
             const listEl = document.getElementById('cardsList');
             const emptyEl = document.getElementById('emptyState');
-            const countText = document.getElementById('cardCountText');
-
-            countText.innerText = `${cards.length} کارت ثبت شده`;
+            document.getElementById('cardCountText').innerText = `${cards.length} کارت ثبت شده`;
+            
             listEl.innerHTML = '';
 
             if (cards.length === 0) {
@@ -342,119 +296,79 @@
                 return;
             } else {
                 emptyEl.classList.add('hidden');
-                emptyEl.classList.remove('flex');
             }
 
             cards.forEach((card, index) => {
                 const bank = getBankInfo(card.cardNumber);
-                
                 const cardWrapper = document.createElement('div');
-                cardWrapper.className = 'glass-panel rounded-3xl p-4 flex flex-col gap-3 relative border border-slate-800 shadow-xl';
+                cardWrapper.className = 'glass-panel rounded-3xl p-4 flex flex-col gap-3 relative border border-slate-800';
 
                 cardWrapper.innerHTML = `
-                    <div class="bank-card p-5 text-white flex flex-col justify-between" style="background: ${bank.bg}">
+                    <div class="bank-card p-5 ${bank.textColor} flex flex-col justify-between shadow-md" style="background: ${bank.bg}">
                         <div class="shimmer-effect"></div>
                         <div class="flex justify-between items-start z-10">
-                            <span class="font-extrabold text-sm tracking-wide opacity-95">${bank.name}</span>
+                            <span class="font-extrabold text-sm opacity-95">${bank.name}</span>
                             <div class="card-chip"></div>
                         </div>
-                        <div class="text-xl num-font font-bold tracking-widest text-center ltr z-10 my-3 drop-shadow">
+                        <div class="text-xl force-ltr font-bold text-center z-10 my-3">
                             ${card.cardNumber}
                         </div>
                         <div class="flex justify-between items-end z-10 text-xs">
                             <div>
-                                <div class="text-[10px] text-white/70">صاحب کارت</div>
+                                <div class="text-[10px] opacity-75">صاحب کارت</div>
                                 <div class="font-semibold">${card.holder}</div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="space-y-2 pt-1 text-xs text-slate-300">
+                    <div class="space-y-2 text-xs">
                         <div class="flex items-center justify-between bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
-                            <div class="flex items-center gap-2 overflow-hidden">
-                                <i class="fa-solid fa-credit-card text-indigo-400"></i>
-                                <span class="text-slate-400">کارت:</span>
-                                <span class="num-font ltr text-slate-200">${card.cardNumber}</span>
-                            </div>
-                            <button type="button" onclick="copyToClipboard('${card.cardNumber.replace(/\s/g, '')}', 'شماره کارت')" class="bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600 hover:text-white px-2.5 py-1 rounded-lg transition-all font-medium">
-                                کپی
-                            </button>
+                            <span class="text-slate-400">شماره کارت:</span>
+                            <span class="force-ltr text-slate-200">${card.cardNumber}</span>
+                            <button onclick="copyToClipboard('${card.cardNumber.replace(/\s/g, '')}', 'کارت')" class="text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded">کپی</button>
                         </div>
-
                         ${card.account ? `
                         <div class="flex items-center justify-between bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
-                            <div class="flex items-center gap-2 overflow-hidden">
-                                <i class="fa-solid fa-building-columns text-emerald-400"></i>
-                                <span class="text-slate-400">حساب:</span>
-                                <span class="num-font ltr text-slate-200">${card.account}</span>
-                            </div>
-                            <button type="button" onclick="copyToClipboard('${card.account}', 'شماره حساب')" class="bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600 hover:text-white px-2.5 py-1 rounded-lg transition-all font-medium">
-                                کپی
-                            </button>
+                            <span class="text-slate-400">حساب:</span>
+                            <span class="force-ltr text-slate-200">${card.account}</span>
+                            <button onclick="copyToClipboard('${card.account}', 'حساب')" class="text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded">کپی</button>
                         </div>` : ''}
-
                         ${card.iban ? `
                         <div class="flex items-center justify-between bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
-                            <div class="flex items-center gap-2 overflow-hidden">
-                                <i class="fa-solid fa-money-bill-transfer text-amber-400"></i>
-                                <span class="text-slate-400">شبا:</span>
-                                <span class="num-font ltr text-slate-200">IR${card.iban}</span>
-                            </div>
-                            <button type="button" onclick="copyToClipboard('IR${card.iban}', 'شماره شبا')" class="bg-amber-600/20 text-amber-400 hover:bg-amber-600 hover:text-white px-2.5 py-1 rounded-lg transition-all font-medium">
-                                کپی
-                            </button>
+                            <span class="text-slate-400">شبا:</span>
+                            <span class="force-ltr text-slate-200">IR${card.iban}</span>
+                            <button onclick="copyToClipboard('IR${card.iban}', 'شبا')" class="text-amber-400 bg-amber-500/10 px-2 py-1 rounded">کپی</button>
                         </div>` : ''}
                     </div>
 
-                    <div class="flex items-center justify-between pt-2 border-t border-slate-800/80 text-xs">
-                        <div class="flex items-center gap-1">
-                            <button type="button" onclick="moveCard(${index}, -1)" ${index === 0 ? 'disabled class="opacity-30 p-2 text-slate-500"' : 'class="p-2 text-slate-400 hover:text-indigo-400"'} title="انتقال به بالا">
-                                <i class="fa-solid fa-arrow-up"></i>
-                            </button>
-                            <button type="button" onclick="moveCard(${index}, 1)" ${index === cards.length - 1 ? 'disabled class="opacity-30 p-2 text-slate-500"' : 'class="p-2 text-slate-400 hover:text-indigo-400"'} title="انتقال به پایین">
-                                <i class="fa-solid fa-arrow-down"></i>
-                            </button>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button type="button" onclick="editCard(${index})" class="text-slate-400 hover:text-indigo-400 p-2 flex items-center gap-1">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                                <span>ویرایش</span>
-                            </button>
-                            <button type="button" onclick="deleteCard(${index})" class="text-rose-400/80 hover:text-rose-400 p-2 flex items-center gap-1">
-                                <i class="fa-solid fa-trash-can"></i>
-                                <span>حذف</span>
-                            </button>
-                        </div>
+                    <div class="flex justify-between pt-2 border-t border-slate-800 text-xs text-slate-400">
+                        <button onclick="editCard(${index})"><i class="fa-solid fa-pen"></i> ویرایش</button>
+                        <button onclick="deleteCard(${index})" class="text-rose-400"><i class="fa-solid fa-trash"></i> حذف</button>
                     </div>
                 `;
                 listEl.appendChild(cardWrapper);
             });
         }
 
-        // Camera Scan Functionality
         async function openScanner() {
             closeModal();
             const scannerModal = document.getElementById('scannerModal');
             const video = document.getElementById('videoFeed');
-            const scanStatus = document.getElementById('scanStatus');
-            scanStatus.innerText = 'در حال راه‌اندازی دوربین...';
 
             try {
                 videoStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
+                    video: { facingMode: 'environment' }
                 });
                 video.srcObject = videoStream;
                 scannerModal.classList.remove('hidden');
-                scanStatus.innerText = 'کارت را صاف روبه‌روی دوربین بگیرید و دکمه اسکن را بزنید.';
             } catch (err) {
-                alert('دسترسی به دوربین برقرار نشد. لطفاً مجوز دوربین را در مرورگر تایید کنید.');
+                alert('اجازه دسترسی به دوربین داده نشد.');
             }
         }
 
         function closeScanner() {
             if (videoStream) {
                 videoStream.getTracks().forEach(track => track.stop());
-                videoStream = null;
             }
             document.getElementById('scannerModal').classList.add('hidden');
         }
@@ -463,104 +377,49 @@
             const video = document.getElementById('videoFeed');
             const canvas = document.getElementById('scanCanvas');
             const status = document.getElementById('scanStatus');
-            const btn = document.getElementById('btnCapture');
-
+            
             canvas.width = video.videoWidth || 1280;
             canvas.height = video.videoHeight || 720;
             const ctx = canvas.getContext('2d');
-            
-            // Draw video frame
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            // Pre-process image: Increase contrast & convert to grayscale for OCR accuracy
-            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const d = imgData.data;
-            for (let i = 0; i < d.length; i += 4) {
-                let v = (0.2126 * d[i] + 0.7152 * d[i+1] + 0.0722 * d[i+2]);
-                v = v > 120 ? 255 : 0; // High contrast threshold
-                d[i] = d[i+1] = d[i+2] = v;
-            }
-            ctx.putImageData(imgData, 0, 0);
-
-            status.innerText = 'در حال تحلیل هوشمند تصویر...';
-            btn.disabled = true;
-            btn.classList.add('opacity-50');
+            status.innerText = 'در حال خواندن کارت...';
 
             try {
                 const worker = await Tesseract.createWorker('eng');
-                await worker.setParameters({
-                    tessedit_char_whitelist: '0123456789IRir-',
-                });
+                await worker.setParameters({ tessedit_char_whitelist: '0123456789' });
 
                 const { data: { text } } = await worker.recognize(canvas);
                 await worker.terminate();
 
-                const cleanText = text.replace(/[^0-9a-zA-Z]/g, '');
-
-                // Extract Card Number (16 Digits)
-                let cardMatch = cleanText.match(/\d{16}/);
-                
-                // Extract IBAN (24 Digits)
-                let ibanMatch = text.match(/IR\s*?(\d{24})/i) || cleanText.match(/\d{24}/);
-
-                // Extract Account Number (9 to 18 Digits)
-                let accountMatch = cleanText.match(/\d{9,15}/);
-
-                let found = false;
+                const clean = text.replace(/\D/g, '');
+                const cardMatch = clean.match(/\d{16}/);
 
                 if (cardMatch) {
-                    let num = cardMatch[0];
-                    // Fix LTR / RTL reversal if needed
-                    const formatted = formatCardNumber(num);
-                    document.getElementById('inputCardNumber').value = formatted;
+                    document.getElementById('inputCardNumber').value = formatCardNumber(cardMatch[0]);
                     onCardNumberInput(document.getElementById('inputCardNumber'));
-                    found = true;
-                }
-
-                if (ibanMatch) {
-                    const cleanIban = ibanMatch[1] || ibanMatch[0].replace(/\D/g, '');
-                    if (cleanIban.length === 24) {
-                        document.getElementById('inputIban').value = cleanIban;
-                        found = true;
-                    }
-                }
-
-                if (accountMatch && accountMatch[0] !== cardMatch?.[0]) {
-                    document.getElementById('inputAccount').value = accountMatch[0];
-                    found = true;
-                }
-
-                if (found) {
-                    showToast('اطلاعات کارت اسکن شد');
                     closeScanner();
                     openAddModal(false);
+                    showToast('شماره کارت شناسایی شد');
                 } else {
-                    status.innerText = 'تصویر ناواضح بود. کارت را دقیق‌تر روبه‌روی نور بگیرید.';
+                    status.innerText = 'تصویر خوانا نبود. دوباره تلاش کنید.';
                 }
             } catch (e) {
-                status.innerText = 'خطا در فرآیند پردازش تصویر.';
-            } finally {
-                btn.disabled = false;
-                btn.classList.remove('opacity-50');
+                status.innerText = 'خطا در اسکن.';
             }
         }
 
-        // Modal Controls
         function openAddModal(reset = true) {
             if(reset) {
                 document.getElementById('cardId').value = '';
                 document.getElementById('cardForm').reset();
-                document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-credit-card text-indigo-400"></i><span>افزودن کارت جدید</span>';
                 onCardNumberInput(document.getElementById('inputCardNumber'));
             }
-            
-            const modal = document.getElementById('cardModal');
-            modal.classList.remove('hidden');
+            document.getElementById('cardModal').classList.remove('hidden');
         }
 
         function closeModal() {
-            const modal = document.getElementById('cardModal');
-            modal.classList.add('hidden');
+            document.getElementById('cardModal').classList.add('hidden');
         }
 
         function handleSaveCard(e) {
@@ -571,20 +430,15 @@
             const account = document.getElementById('inputAccount').value;
             const iban = document.getElementById('inputIban').value.replace(/\D/g, '');
 
-            if (!number || number.length < 19) {
-                showToast('لطفاً شماره کارت ۱۶ رقمی را کامل وارد کنید');
+            if (number.length < 19) {
+                alert('شماره کارت باید ۱۶ رقم کامل باشد.');
                 return;
             }
 
-            const cardData = { cardNumber: number, holder, account, iban };
+            const data = { cardNumber: number, holder, account, iban };
 
-            if (id !== '') {
-                cards[parseInt(id)] = cardData;
-                showToast('کارت با موفقیت بروزرسانی شد');
-            } else {
-                cards.push(cardData);
-                showToast('کارت جدید اضافه شد');
-            }
+            if (id !== '') cards[parseInt(id)] = data;
+            else cards.push(data);
 
             saveToStorage();
             closeModal();
@@ -597,66 +451,28 @@
             document.getElementById('inputHolder').value = card.holder;
             document.getElementById('inputAccount').value = card.account || '';
             document.getElementById('inputIban').value = card.iban || '';
-
-            document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-pen text-indigo-400"></i><span>ویرایش کارت</span>';
             
             onCardNumberInput(document.getElementById('inputCardNumber'));
-            document.getElementById('previewHolder').innerText = card.holder;
-
-            const modal = document.getElementById('cardModal');
-            modal.classList.remove('hidden');
+            document.getElementById('cardModal').classList.remove('hidden');
         }
 
         function deleteCard(index) {
-            if (confirm('آیا از حذف این کارت اطمینان دارید؟')) {
+            if (confirm('کارت حذف شود؟')) {
                 cards.splice(index, 1);
                 saveToStorage();
-                showToast('کارت حذف شد');
             }
         }
 
-        function moveCard(index, direction) {
-            const newIndex = index + direction;
-            if (newIndex < 0 || newIndex >= cards.length) return;
-            const temp = cards[index];
-            cards[index] = cards[newIndex];
-            cards[newIndex] = temp;
-            saveToStorage();
-        }
-
-        function copyToClipboard(text, type) {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(() => showToast(`${type} کپی شد`));
-            } else {
-                const textarea = document.createElement('textarea');
-                textarea.value = text;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-                showToast(`${type} کپی شد`);
-            }
+        function copyToClipboard(text, msg) {
+            navigator.clipboard.writeText(text);
+            showToast(`${msg} کپی شد`);
         }
 
         function showToast(msg) {
             const toast = document.getElementById('toast');
             document.getElementById('toastMessage').innerText = msg;
             toast.classList.remove('opacity-0', 'pointer-events-none');
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'pointer-events-none');
-            }, 2000);
-        }
-
-        function checkIosBanner() {
-            const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
-            if (isIos && !isStandalone) {
-                document.getElementById('iosBanner').classList.remove('hidden');
-            }
-        }
-
-        function closeIosBanner() {
-            document.getElementById('iosBanner').classList.add('hidden');
+            setTimeout(() => toast.classList.add('opacity-0', 'pointer-events-none'), 2000);
         }
     </script>
 </body>
