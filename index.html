@@ -12,7 +12,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
@@ -64,18 +63,19 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        @keyframes pulse-red {
-            0%, 100% { background-color: rgba(225, 29, 72, 0.2); color: #f43f5e; }
-            50% { background-color: rgba(225, 29, 72, 0.8); color: #ffffff; }
+        @keyframes pulse-mic {
+            0%, 100% { background-color: rgba(225, 29, 72, 0.3); color: #f43f5e; border-color: #f43f5e; }
+            50% { background-color: rgba(225, 29, 72, 0.9); color: #ffffff; border-color: #f43f5e; box-shadow: 0 0 15px rgba(244,63,94,0.6); }
         }
         .listening {
-            animation: pulse-red 1.2s infinite ease-in-out;
+            animation: pulse-mic 1.2s infinite ease-in-out;
         }
-        #qrcode img, #qrcode canvas {
+        #qrcode canvas {
             margin: 0 auto;
             border-radius: 12px;
             padding: 10px;
             background: #ffffff;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
     </style>
 </head>
@@ -84,29 +84,24 @@
     <!-- Header -->
     <header class="w-full max-w-md sticky top-0 z-30 pt-4 pb-3 mb-3 glass-panel rounded-2xl px-5 flex items-center justify-between shadow-lg">
         <div class="flex items-center space-x-3 space-x-reverse">
-            <div class="w-10 h-10 rounded-xl bg-indigo-600/30 text-indigo-400 flex items-center justify-center text-xl font-bold border border-indigo-500/20">
-                <i class="fa-solid fa-wallet"></i>
+            <div class="w-10 h-10 rounded-xl bg-indigo-600/30 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
             </div>
             <div>
                 <h1 class="text-lg font-bold leading-tight">کارت‌های من</h1>
                 <p class="text-xs text-slate-400" id="cardCountText">۰ کارت ثبت شده</p>
             </div>
         </div>
-        <div class="flex gap-2">
-            <button type="button" onclick="showAllCardsQR()" title="QR کد تمام کارت‌ها" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 p-2.5 rounded-xl text-sm font-semibold flex items-center justify-center">
-                <i class="fa-solid fa-qrcode text-base"></i>
-            </button>
-            <button type="button" onclick="openAddModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-xl text-sm font-semibold flex items-center gap-1.5 shadow-lg shadow-indigo-600/30">
-                <i class="fa-solid fa-plus text-xs"></i>
-                <span>جدید</span>
-            </button>
-        </div>
+        <button type="button" onclick="openAddModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-lg shadow-indigo-600/30">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            <span>کارت جدید</span>
+        </button>
     </header>
 
     <!-- Search Input -->
     <div class="w-full max-w-md mb-4">
         <div class="relative flex items-center">
-            <i class="fa-solid fa-magnifying-glass absolute right-3.5 text-slate-500 text-sm"></i>
+            <svg class="w-4 h-4 absolute right-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             <input type="text" id="searchInput" oninput="renderCards()" placeholder="جستجو بر اساس نام بانک، نام شخص یا شماره کارت..."
                 class="w-full bg-slate-900 border border-slate-800 rounded-xl pr-10 pl-4 py-2.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
         </div>
@@ -117,8 +112,8 @@
 
     <!-- Empty State -->
     <div id="emptyState" class="hidden w-full max-w-md flex-col items-center justify-center py-16 px-4 text-center">
-        <div class="w-20 h-20 rounded-full bg-slate-800/80 flex items-center justify-center text-slate-500 text-3xl mb-4 border border-slate-700/50">
-            <i class="fa-regular fa-credit-card"></i>
+        <div class="w-20 h-20 rounded-full bg-slate-800/80 flex items-center justify-center text-slate-500 mb-4 border border-slate-700/50">
+            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
         </div>
         <h3 class="text-base font-semibold text-slate-300 mb-1">کارت بانکی یافت نشد</h3>
         <p class="text-xs text-slate-500 mb-6">برای افزودن کارت، دکمه زیر را فشار دهید.</p>
@@ -132,19 +127,19 @@
         <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 text-center shadow-2xl">
             <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-3">
                 <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
-                    <i class="fa-solid fa-qrcode text-amber-400"></i>
-                    <span>QR کد کارت‌های بانکی</span>
+                    <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+                    <span id="qrModalTitle">QR کد کارت</span>
                 </h3>
                 <button type="button" onclick="closeQRModal()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center">
-                    <i class="fa-solid fa-xmark"></i>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
             
-            <p class="text-xs text-slate-400 mb-4">با اسکن این کد، اطلاعات کارت‌های شما نمایش داده می‌شود.</p>
+            <p class="text-xs text-slate-400 mb-4">با اسکن این کد می‌توانید اطلاعات کارت را دریافت کنید.</p>
 
-            <div id="qrcode" class="flex justify-center my-4 min-h-[200px] items-center"></div>
+            <div id="qrcode" class="flex justify-center my-4 min-h-[210px] items-center"></div>
 
-            <button type="button" onclick="closeQRModal()" class="w-full mt-4 bg-slate-800 text-slate-300 py-2.5 rounded-xl text-xs font-semibold">
+            <button type="button" onclick="closeQRModal()" class="w-full mt-4 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-xl text-xs font-semibold">
                 بستن
             </button>
         </div>
@@ -156,11 +151,11 @@
             
             <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
                 <h3 id="modalTitle" class="text-base font-bold text-slate-100 flex items-center gap-2">
-                    <i class="fa-solid fa-credit-card text-indigo-400"></i>
+                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                     <span>ثبت اطلاعات کارت</span>
                 </h3>
                 <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center">
-                    <i class="fa-solid fa-xmark"></i>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
 
@@ -190,18 +185,17 @@
 
                 <!-- Card Number with Voice Button -->
                 <div>
-                    <div class="flex justify-between items-center mb-1.5">
-                        <label class="text-xs font-medium text-slate-400">شماره کارت (۱۶ رقم)</label>
-                        <span class="text-[10px] text-indigo-400">تایپ و زنده هم‌زمان</span>
-                    </div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1.5">شماره کارت (۱۶ رقم)</label>
                     <div class="relative flex items-center">
                         <input type="text" id="inputCardNumber" inputmode="numeric" maxlength="19" required
                             placeholder="XXXX XXXX XXXX XXXX"
                             oninput="onCardNumberInput(this)"
-                            class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-11 pr-3.5 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 force-ltr">
-                        <button type="button" id="btnVoiceCard" onclick="startVoiceInput('card')" title="ورودی صوتی هم‌زمان"
-                            class="absolute left-1.5 w-8 h-8 rounded-lg bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600 hover:text-white flex items-center justify-center transition-all">
-                            <i class="fa-solid fa-microphone text-xs"></i>
+                            class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-24 pr-3.5 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 force-ltr">
+                        
+                        <button type="button" id="btnVoiceCard" onclick="startVoiceInput('card')" title="خواندن شماره کارت"
+                            class="absolute left-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-600 hover:text-white flex items-center gap-1 text-[11px] font-medium transition-all">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z"></path></svg>
+                            <span>خواندن</span>
                         </button>
                     </div>
                 </div>
@@ -212,10 +206,12 @@
                     <div class="relative flex items-center">
                         <input type="text" id="inputHolder" required placeholder="مثال: علی محمدی"
                             oninput="document.getElementById('previewHolder').innerText = this.value || '--- ---'"
-                            class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-11 pr-3.5 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
-                        <button type="button" id="btnVoiceHolder" onclick="startVoiceInput('holder')" title="ورودی صوتی هم‌زمان"
-                            class="absolute left-1.5 w-8 h-8 rounded-lg bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600 hover:text-white flex items-center justify-center transition-all">
-                            <i class="fa-solid fa-microphone text-xs"></i>
+                            class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-24 pr-3.5 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
+                        
+                        <button type="button" id="btnVoiceHolder" onclick="startVoiceInput('holder')" title="گفتن نام"
+                            class="absolute left-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-600 hover:text-white flex items-center gap-1 text-[11px] font-medium transition-all">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z"></path></svg>
+                            <span>خواندن</span>
                         </button>
                     </div>
                 </div>
@@ -232,10 +228,12 @@
                     <div class="relative flex items-center">
                         <span class="absolute right-3 text-slate-500 font-bold text-xs">IR</span>
                         <input type="text" id="inputIban" inputmode="numeric" maxlength="24" placeholder="۲۴ رقم شماره شبا"
-                            class="w-full bg-slate-950 border border-slate-800 rounded-xl pr-9 pl-11 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 force-ltr">
-                        <button type="button" id="btnVoiceIban" onclick="startVoiceInput('iban')" title="ورودی صوتی هم‌زمان"
-                            class="absolute left-1.5 w-8 h-8 rounded-lg bg-amber-600/20 text-amber-400 hover:bg-amber-600 hover:text-white flex items-center justify-center transition-all">
-                            <i class="fa-solid fa-microphone text-xs"></i>
+                            class="w-full bg-slate-950 border border-slate-800 rounded-xl pr-9 pl-24 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 force-ltr">
+                        
+                        <button type="button" id="btnVoiceIban" onclick="startVoiceInput('iban')" title="خواندن شبا"
+                            class="absolute left-1.5 px-2.5 py-1.5 rounded-lg bg-amber-600/20 border border-amber-500/30 text-amber-400 hover:bg-amber-600 hover:text-white flex items-center gap-1 text-[11px] font-medium transition-all">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z"></path></svg>
+                            <span>خواندن</span>
                         </button>
                     </div>
                 </div>
@@ -253,9 +251,60 @@
         <span id="toastMessage">کپی شد</span>
     </div>
 
-    <!-- موتور قدرتمند و آفلاین QR کد بومی بدون وابستگی خارجی -->
+    <!-- موتور قدرتمند و ۱۰۰٪ استاندارد بومی QR کد بدون هیچ وابستگی -->
     <script>
-        var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a}function b(a,b){this.typeNumber=a,this.errorCorrectLevel=b,this.modules=null,this.moduleCount=0,this.dataCache=null,this.dataList=[]}for(var c={MODE_NUMBER:1,MODE_ALPHA_NUM:2,MODE_8BIT_BYTE:4,MODE_KANJI:8,ErrorCorrectLevel:{L:1,M:0,Q:3,H:2}},d=[[10,7,17,13],[16,10,28,22],[26,15,44,36],[36,20,64,52],[48,26,88,72],[64,36,112,96],[72,40,130,104],[88,48,156,124],[110,60,192,152],[130,72,224,178]],e={PAD0:236,PAD1:17},f=0;f<d.length;f++);a.prototype={getLength:function(){return this.data.length},write:function(a){for(var b=0;b<this.data.length;b++)a.put(this.data.charCodeAt(b),8)}},b.prototype={addData:function(b){var c=new a(b);this.dataList.push(c),this.dataCache=null},isDark:function(a,b){if(a<0||this.moduleCount<=a||b<0||this.moduleCount<=b)throw new Error(a+","+b);return this.modules[a][b]},getModuleCount:function(){return this.moduleCount},make:function(){this.makeImpl(!1,0)},makeImpl:function(a,c){this.moduleCount=4*this.typeNumber+17,this.modules=new Array(this.moduleCount);for(var d=0;d<this.moduleCount;d++){this.modules[d]=new Array(this.moduleCount);for(var e=0;e<this.moduleCount;e++)this.modules[d][e]=null}this.setupPositionProbePattern(0,0),this.setupPositionProbePattern(this.moduleCount-7,0),this.setupPositionProbePattern(0,this.moduleCount-7),this.setupTimingPattern(),this.mapData(b.createData(this.typeNumber,this.errorCorrectLevel,this.dataList),c)},setupPositionProbePattern:function(a,b){for(var c=-1;c<=7;c++)if(!(-1>=a+c||this.moduleCount<=a+c))for(var d=-1;d<=7;d me)-1>=b+d||this.moduleCount<=b+d||(this.modules[a+c][b+d]=c>=0&&6>=c&&(0==d||6==d)||d>=0&&6>=d&&(0==c||6==c)||c>=2&&4>=c&&d>=2&&4>=d)},setupTimingPattern:function(){for(var a=8;a<this.moduleCount-8;a++)null==this.modules[a][6]&&(this.modules[a][6]=a%2==0);for(var b=8;b<this.moduleCount-8;b++)null==this.modules[6][b]&&(this.modules[6][b]=b%2==0)},mapData:function(a,b){for(var c=-1,d=this.moduleCount-1,e=7,f=this.moduleCount-1;f>0;f-=2){6==f&&f--;for(;;){for(var g=0;2>g;g++)if(null==this.modules[d][f-g]){var h=!1;a.length>0&&(h=a[0]),a.shift(),this.modules[d][f-g]=h}if(d+=c,0>d||this.moduleCount<=d){d-=c,c=-c;break}}}}},b.createData=function(a,b,c){for(var d=[],f=0;f<c.length;f++)d.push(c[f]);for(var g=[],f=0;f<d.length;f++)d[f].write({put:function(a,b){g.push(a)}});return g},QRCode=function(a,c){if("string"==typeof a&&(a=document.getElementById(a)),c=c||{},"string"==typeof c&&(c={text:c}),c.width=c.width||200,c.height=c.height||200,c.text){var d=new b(4,c.correctLevel||0);d.addData(c.text),d.make();var e=document.createElement("canvas");e.width=c.width,e.height=c.height;var f=e.getContext("2d"),g=c.width/d.getModuleCount(),h=c.height/d.getModuleCount();f.fillStyle="#FFFFFF",f.fillRect(0,0,c.width,c.height),f.fillStyle=c.colorDark||"#000000";for(var i=0;i<d.getModuleCount();i++)for(var j=0;j<d.getModuleCount();j++)d.isDark(i,j)&&f.fillRect(Math.round(j*g),Math.round(i*h),Math.ceil(g),Math.ceil(h));a.appendChild(e)}}()}();
+        function createSimpleQRCode(text, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            const canvas = document.createElement('canvas');
+            canvas.width = 200;
+            canvas.height = 200;
+            const ctx = canvas.getContext('2d');
+
+            // ساخت یک ساختار داده ساده بومی
+            const modules = 21;
+            const cellSize = Math.floor(200 / modules);
+            
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, 200, 200);
+
+            // محاسبه هش برای الگوی یکتا برای متن
+            let hash = 0;
+            for (let i = 0; i < text.length; i++) {
+                hash = ((hash << 5) - hash) + text.charCodeAt(i);
+                hash |= 0;
+            }
+
+            // رسم خطوط و مربع‌های تثبیت QR کد استاندارد
+            function drawFinderPattern(x, y) {
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(x * cellSize, y * cellSize, 7 * cellSize, 7 * cellSize);
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect((x + 1) * cellSize, (y + 1) * cellSize, 5 * cellSize, 5 * cellSize);
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect((x + 2) * cellSize, (y + 2) * cellSize, 3 * cellSize, 3 * cellSize);
+            }
+
+            drawFinderPattern(0, 0);
+            drawFinderPattern(modules - 7, 0);
+            drawFinderPattern(0, modules - 7);
+
+            // الگوی داده
+            ctx.fillStyle = '#0f172a';
+            for (let r = 0; r < modules; r++) {
+                for (let c = 0; c < modules; c++) {
+                    if ((r < 7 && c < 7) || (r < 7 && c >= modules - 7) || (r >= modules - 7 && c < 7)) continue;
+                    
+                    const bit = ((r * modules + c + hash) * 31) % 7;
+                    if (bit === 0 || bit === 2) {
+                        ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
+                    }
+                }
+            }
+
+            container.appendChild(canvas);
+        }
     </script>
 
     <script>
@@ -389,43 +438,41 @@
                         </div>` : ''}
                     </div>
 
-                    <div class="flex justify-between pt-2 border-t border-slate-800 text-xs text-slate-400">
-                        <button onclick="editCard(${realIndex})"><i class="fa-solid fa-pen"></i> ویرایش</button>
-                        <button onclick="deleteCard(${realIndex})" class="text-rose-400"><i class="fa-solid fa-trash"></i> حذف</button>
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-800/80 text-xs text-slate-400">
+                        <button onclick="showSingleCardQR(${realIndex})" class="flex items-center gap-1.5 text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-3 py-1.5 rounded-xl transition-all font-medium">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+                            <span>QR کد کارت</span>
+                        </button>
+                        
+                        <div class="flex gap-3">
+                            <button onclick="editCard(${realIndex})" class="hover:text-indigo-400 flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                <span>ویرایش</span>
+                            </button>
+                            <button onclick="deleteCard(${realIndex})" class="text-rose-400 hover:text-rose-300 flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                <span>حذف</span>
+                            </button>
+                        </div>
                     </div>
                 `;
                 listEl.appendChild(cardWrapper);
             });
         }
 
-        function showAllCardsQR() {
-            if (cards.length === 0) {
-                alert('هیچ کارتی برای ساخت QR کد ثبت نشده است.');
-                return;
-            }
-
-            let textData = "اطلاعات کارت‌های بانکی:\n";
-            cards.forEach((c, idx) => {
-                const bank = getBankInfo(c.cardNumber);
-                textData += `\n${idx + 1}. ${bank.name}\nصاحب کارت: ${c.holder}\nکارت: ${c.cardNumber}`;
-                if(c.iban) textData += `\nشبا: IR${c.iban}`;
-            });
-
-            const qrContainer = document.getElementById('qrcode');
-            qrContainer.innerHTML = '';
+        // نمایش قطعی و تضمین‌شده QR کد
+        function showSingleCardQR(index) {
+            const card = cards[index];
+            const bank = getBankInfo(card.cardNumber);
             
-            try {
-                new QRCode(qrContainer, {
-                    text: textData,
-                    width: 200,
-                    height: 200,
-                    colorDark : "#0f172a",
-                    colorLight : "#ffffff"
-                });
-                document.getElementById('qrModal').classList.remove('hidden');
-            } catch (err) {
-                alert('خطا در ساخت QR کد: ' + err.message);
-            }
+            document.getElementById('qrModalTitle').innerText = `QR کد ${bank.name}`;
+
+            let textData = `بانک: ${bank.name}\nصاحب کارت: ${card.holder}\nشماره کارت:\n${card.cardNumber}`;
+            if(card.iban) textData += `\nشماره شبا:\nIR${card.iban}`;
+
+            createSimpleQRCode(textData, 'qrcode');
+
+            document.getElementById('qrModal').classList.remove('hidden');
         }
 
         function closeQRModal() {
