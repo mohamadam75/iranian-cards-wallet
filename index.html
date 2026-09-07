@@ -64,6 +64,20 @@
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .scan-line {
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            background: #6366f1;
+            box-shadow: 0 0 15px #6366f1, 0 0 8px #6366f1;
+            animation: scanAnim 2s infinite ease-in-out;
+        }
+        @keyframes scanAnim {
+            0% { top: 5%; }
+            50% { top: 90%; }
+            100% { top: 5%; }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center p-4 antialiased">
@@ -116,7 +130,7 @@
 
             <button type="button" onclick="openScanner()" class="w-full mb-4 bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-indigo-500/30 py-3 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2">
                 <i class="fa-solid fa-camera text-indigo-400 text-sm"></i>
-                <span>اسکن سریع با دوربین گوشی</span>
+                <span>اسکن اتوماتیک با دوربین</span>
             </button>
 
             <!-- Card Preview -->
@@ -181,10 +195,13 @@
         </div>
     </div>
 
-    <!-- Scanner Modal -->
+    <!-- Auto Scanner Modal -->
     <div id="scannerModal" class="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-between p-4 hidden">
         <div class="w-full max-w-md flex items-center justify-between z-20 pt-2">
-            <span class="text-sm font-bold text-white">اسکن هوشمند کارت بانکی</span>
+            <span class="text-sm font-bold text-white flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                اسکن خودکار...
+            </span>
             <button type="button" onclick="closeScanner()" class="w-9 h-9 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center">
                 <i class="fa-solid fa-xmark"></i>
             </button>
@@ -192,16 +209,17 @@
 
         <div class="relative w-full max-w-md flex-1 flex items-center justify-center overflow-hidden my-4 rounded-2xl">
             <video id="videoFeed" autoplay playsinline muted class="w-full h-full object-cover"></video>
-            <div class="absolute w-[85%] aspect-[1.586/1] rounded-2xl border-2 border-dashed border-indigo-500 pointer-events-none"></div>
+            <div class="absolute w-[85%] aspect-[1.586/1] rounded-2xl border-2 border-indigo-500 pointer-events-none overflow-hidden shadow-[0_0_0_9999px_rgba(15,23,42,0.75)]">
+                <div class="scan-line"></div>
+            </div>
         </div>
 
         <canvas id="scanCanvas" class="hidden"></canvas>
 
-        <div class="w-full max-w-md flex flex-col gap-3 z-20 pb-4">
-            <div id="scanStatus" class="text-xs text-center text-slate-400">کارت را صاف جلوی دوربین بگیرید</div>
-            <button type="button" onclick="captureAndScan()" id="btnCapture" class="w-full bg-indigo-600 text-white py-3.5 rounded-xl font-semibold text-sm">
-                <i class="fa-solid fa-camera ml-1"></i> اسکن کارت
-            </button>
+        <div class="w-full max-w-md flex flex-col gap-2 z-20 pb-6 text-center">
+            <p id="scanStatus" class="text-xs text-indigo-300 font-semibold bg-indigo-950/80 py-2 px-4 rounded-full border border-indigo-500/30">
+                کارت را جلوی دوربین نگه دارید...
+            </p>
         </div>
     </div>
 
@@ -212,14 +230,9 @@
 
     <script>
         const BANK_DATA = {
-            // بانک مهر ایران - سبز زمردی
             "606373": { name: "بانک مهر ایران", bg: "linear-gradient(135deg, #059669, #047857)", textColor: "text-white" },
             "639370": { name: "بانک مهر ایران", bg: "linear-gradient(135deg, #059669, #047857)", textColor: "text-white" },
-            
-            // بانک رفاه کارگران - نقره‌ای متالیک
-            "589463": { name: "بانک رفاه کارگران", bg: "linear-gradient(135deg, #e2e8f0, #94a3b8)", textColor: "text-slate-900" },
-
-            // سایر بانک‌ها
+            "589463": { name: "بانک رفاه کارگران", bg: "linear-gradient(135deg, #1e3a8a, #3b82f6)", textColor: "text-white" },
             "603799": { name: "بانک ملی ایران", bg: "linear-gradient(135deg, #0f3854, #1a5b88)", textColor: "text-white" },
             "610433": { name: "بانک ملت", bg: "linear-gradient(135deg, #a71d2a, #e53935)", textColor: "text-white" },
             "603769": { name: "بانک صادرات", bg: "linear-gradient(135deg, #0a2540, #1e4976)", textColor: "text-white" },
@@ -231,19 +244,16 @@
             "504172": { name: "بانک رسالت", bg: "linear-gradient(135deg, #0f766e, #14b8a6)", textColor: "text-white" },
             "636214": { name: "بانک آینده", bg: "linear-gradient(135deg, #4c1d95, #7c3aed)", textColor: "text-white" },
             "603770": { name: "بانک کشاورزی", bg: "linear-gradient(135deg, #14532d, #16a34a)", textColor: "text-white" },
-            "628023": { name: "بانک مسکن", bg: "linear-gradient(135deg, #c2410c, #ea580c)", textColor: "text-white" },
-            "505785": { name: "بانک ایران زمین", bg: "linear-gradient(135deg, #581c87, #9333ea)", textColor: "text-white" },
-            "627412": { name: "بانک اقتصاد نوین", bg: "linear-gradient(135deg, #831843, #db2777)", textColor: "text-white" },
-            "502908": { name: "توسعه تعاون", bg: "linear-gradient(135deg, #1e3a8a, #3b82f6)", textColor: "text-white" },
-            "627488": { name: "بانک کارآفرین", bg: "linear-gradient(135deg, #3f6212, #65a30d)", textColor: "text-white" },
-            "502806": { name: "بانک شهر", bg: "linear-gradient(135deg, #9f1239, #f43f5e)", textColor: "text-white" },
-            "505801": { name: "موسسه کوثر", bg: "linear-gradient(135deg, #374151, #4b5563)", textColor: "text-white" }
+            "628023": { name: "بانک مسکن", bg: "linear-gradient(135deg, #c2410c, #ea580c)", textColor: "text-white" }
         };
 
         const DEFAULT_BANK = { name: "کارت بانکی", bg: "linear-gradient(135deg, #1e293b, #334155)", textColor: "text-white" };
 
         let cards = [];
         let videoStream = null;
+        let scanInterval = null;
+        let isProcessing = false;
+        let tesseractWorker = null;
 
         window.addEventListener('DOMContentLoaded', () => {
             const saved = localStorage.getItem('my_bank_cards');
@@ -357,56 +367,85 @@
 
             try {
                 videoStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment' }
+                    video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
                 });
                 video.srcObject = videoStream;
                 scannerModal.classList.remove('hidden');
+
+                if (!tesseractWorker) {
+                    tesseractWorker = await Tesseract.createWorker('eng');
+                    await tesseractWorker.setParameters({
+                        tessedit_char_whitelist: '0123456789'
+                    });
+                }
+
+                isProcessing = false;
+                scanInterval = setInterval(autoScanFrame, 600);
+
             } catch (err) {
-                alert('اجازه دسترسی به دوربین داده نشد.');
+                alert('دسترسی به دوربین داده نشد.');
             }
         }
 
         function closeScanner() {
-            if (videoStream) {
-                videoStream.getTracks().forEach(track => track.stop());
-            }
+            if (scanInterval) clearInterval(scanInterval);
+            if (videoStream) videoStream.getTracks().forEach(track => track.stop());
             document.getElementById('scannerModal').classList.add('hidden');
         }
 
-        async function captureAndScan() {
+        async function autoScanFrame() {
+            if (isProcessing) return;
+            isProcessing = true;
+
             const video = document.getElementById('videoFeed');
             const canvas = document.getElementById('scanCanvas');
-            const status = document.getElementById('scanStatus');
-            
-            canvas.width = video.videoWidth || 1280;
-            canvas.height = video.videoHeight || 720;
+
+            if (!video.videoWidth) {
+                isProcessing = false;
+                return;
+            }
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            status.innerText = 'در حال خواندن کارت...';
+            // افزایش کنتراست تصویر فریم دوربین
+            let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            let d = imgData.data;
+            for (let i = 0; i < d.length; i += 4) {
+                let v = (d[i] + d[i + 1] + d[i + 2]) / 3;
+                v = v < 110 ? 0 : 255;
+                d[i] = d[i + 1] = d[i + 2] = v;
+            }
+            ctx.putImageData(imgData, 0, 0);
 
             try {
-                const worker = await Tesseract.createWorker('eng');
-                await worker.setParameters({ tessedit_char_whitelist: '0123456789' });
+                const { data: { text } } = await tesseractWorker.recognize(canvas);
+                
+                // استخراج تمام اعداد فریم
+                const allNumbers = text.replace(/[^\d]/g, '');
 
-                const { data: { text } } = await worker.recognize(canvas);
-                await worker.terminate();
+                // اعتبارسنجی با پیش‌شماره‌های اصلی بانک‌های ایران (مانند 589463 برای رفاه)
+                const validCardMatch = allNumbers.match(/(502229|639370|606373|589463|603799|610433|603769|621986|627353|589210|622106|504172|636214|603770|628023)\d{10}/);
 
-                const clean = text.replace(/\D/g, '');
-                const cardMatch = clean.match(/\d{16}/);
-
-                if (cardMatch) {
-                    document.getElementById('inputCardNumber').value = formatCardNumber(cardMatch[0]);
+                if (validCardMatch) {
+                    if (navigator.vibrate) navigator.vibrate(200);
+                    
+                    document.getElementById('inputCardNumber').value = formatCardNumber(validCardMatch[0]);
                     onCardNumberInput(document.getElementById('inputCardNumber'));
+                    
                     closeScanner();
                     openAddModal(false);
-                    showToast('شماره کارت شناسایی شد');
-                } else {
-                    status.innerText = 'تصویر خوانا نبود. دوباره تلاش کنید.';
+                    showToast('کارت با موفقیت اسکن شد');
+                    isProcessing = false;
+                    return;
                 }
             } catch (e) {
-                status.innerText = 'خطا در اسکن.';
+                console.log("در حال پردازش...");
             }
+
+            isProcessing = false;
         }
 
         function openAddModal(reset = true) {
