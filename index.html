@@ -15,7 +15,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- QR library با چند CDN پشتیبان (برای ایران) -->
+    <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs@gh-pages/qrcode.min.js"
+            onerror="this.onerror=null;this.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'"></script>
     <!-- اسکنر QR -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
@@ -828,71 +830,115 @@ function renderCards() {
 function buildShareText(mode) {
     if (!cards.length) return '';
     if (mode === 'compact') {
-        let t = '💳 شماره‌های کارت:\n\n';
+        let t = 'شماره کارت ها:\n\n';
         cards.forEach((c, i) => {
             const bank = getBankInfo(c.cardNumber);
-            t += `${i+1}) ${bank.name} — ${c.holder}\n${c.cardNumber.replace(/\s/g,'')}\n\n`;
+            t += (i+1) + ') ' + bank.name + ' - ' + c.holder + '\n' + c.cardNumber.replace(/\s/g,'') + '\n\n';
         });
         return t.trim();
     }
-    // full
-    let t = '💳 اطلاعات کارت برای واریز\n════════════════\n\n';
+    let t = 'اطلاعات کارت برای واریز\n\n';
     cards.forEach((c, i) => {
         const bank = getBankInfo(c.cardNumber);
-        t += `${i+1}. ${bank.name}\n`;
-        t += `نام: ${c.holder}\n`;
-        t += `کارت: ${c.cardNumber.replace(/\s/g,'')}\n`;
-        if (c.account) t += `حساب: ${c.account}\n`;
-        if (c.iban) t += `شبا: IR${c.iban}\n`;
-        t += '────────────\n';
+        t += (i+1) + '. ' + bank.name + '\n';
+        t += 'نام: ' + c.holder + '\n';
+        t += 'کارت: ' + c.cardNumber.replace(/\s/g,'') + '\n';
+        if (c.account) t += 'حساب: ' + c.account + '\n';
+        if (c.iban) t += 'شبا: IR' + c.iban + '\n';
+        t += '----------\n';
     });
-    t += '\nبا لمس طولانی روی شماره می‌توانید کپی کنید.';
+    t += '\nبا لمس طولانی روی شماره کپی کنید.';
     return t;
+}
+
+function makeQRCode(container, text, size) {
+    if (!container) return false;
+    container.innerHTML = '';
+    if (typeof QRCode === 'undefined') {
+        container.innerHTML = '<p class="text-rose-400 text-xs text-center p-4">کتابخانه QR لود نشد. اینترنت را چک کنید و صفحه را رفرش کنید.</p>';
+        return false;
+    }
+    if (!text || !text.trim()) {
+        container.innerHTML = '<p class="text-slate-400 text-xs text-center p-4">متنی برای ساخت QR وجود ندارد</p>';
+        return false;
+    }
+    // متن خیلی بلند → سطح تصحیح پایین‌تر تا جا شود
+    let level = 1; // M
+    try {
+        if (QRCode.CorrectLevel) {
+            level = text.length > 400 ? QRCode.CorrectLevel.L : QRCode.CorrectLevel.M;
+        }
+    } catch (e) {}
+    try {
+        new QRCode(container, {
+            text: text,
+            width: size || 220,
+            height: size || 220,
+            colorDark: '#0b1220',
+            colorLight: '#ffffff',
+            correctLevel: level
+        });
+        return true;
+    } catch (err) {
+        // اگر با M شکست، با L دوباره امتحان
+        try {
+            container.innerHTML = '';
+            new QRCode(container, {
+                text: text,
+                width: size || 220,
+                height: size || 220,
+                colorDark: '#0b1220',
+                colorLight: '#ffffff',
+                correctLevel: (QRCode.CorrectLevel && QRCode.CorrectLevel.L) || 0
+            });
+            return true;
+        } catch (err2) {
+            container.innerHTML = '<p class="text-rose-400 text-xs text-center p-4">خطا در ساخت QR. تعداد کارت‌ها زیاد است؛ حالت فشرده را امتحان کنید.</p>';
+            console.error('QR error', err2);
+            return false;
+        }
+    }
 }
 
 function openShareQR() {
     if (!cards.length) { showToast('کارتی وجود ندارد', true); return; }
-    setShareMode(shareMode);
     document.getElementById('shareModal').classList.remove('hidden');
+    // بعد از نمایش مودال بساز تا المان مخفی نباشد
+    setTimeout(function() { setShareMode(shareMode); }, 80);
 }
 function closeShareQR() { document.getElementById('shareModal').classList.add('hidden'); }
 
 function setShareMode(mode) {
     shareMode = mode;
-    document.getElementById('tabFull').className = 'flex-1 py-2 rounded-xl text-xs font-semibold ' + (mode==='full' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-300');
-    document.getElementById('tabCompact').className = 'flex-1 py-2 rounded-xl text-xs font-semibold ' + (mode==='compact' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-300');
+    var tabFull = document.getElementById('tabFull');
+    var tabCompact = document.getElementById('tabCompact');
+    if (tabFull) tabFull.className = 'flex-1 py-2 rounded-xl text-xs font-semibold ' + (mode==='full' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-300');
+    if (tabCompact) tabCompact.className = 'flex-1 py-2 rounded-xl text-xs font-semibold ' + (mode==='compact' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-300');
 
-    const text = buildShareText(mode);
-    document.getElementById('sharePreview').textContent = text;
+    var text = buildShareText(mode);
+    var preview = document.getElementById('sharePreview');
+    if (preview) preview.textContent = text;
 
-    const box = document.getElementById('shareQrcode');
-    box.innerHTML = '';
-    new QRCode(box, {
-        text: text,
-        width: 236,
-        height: 236,
-        colorDark: '#0b1220',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.M
-    });
+    var box = document.getElementById('shareQrcode');
+    makeQRCode(box, text, 236);
 }
 function copyShareText() {
-    const t = buildShareText(shareMode);
+    var t = buildShareText(shareMode);
     copyToClipboard(t, 'لیست کارت‌ها');
 }
 
 /* ===== SINGLE QR ===== */
 function showSingleQR(index) {
-    const c = cards[index]; if (!c) return;
-    const bank = getBankInfo(c.cardNumber);
-    let content = `${bank.name}\nصاحب کارت: ${c.holder}\nشماره کارت: ${c.cardNumber.replace(/\s/g,'')}\n`;
-    if (c.account) content += `شماره حساب: ${c.account}\n`;
-    if (c.iban) content += `شبا: IR${c.iban}\n`;
+    var c = cards[index]; if (!c) return;
+    var bank = getBankInfo(c.cardNumber);
+    var content = bank.name + '\nصاحب کارت: ' + c.holder + '\nشماره کارت: ' + c.cardNumber.replace(/\s/g,'') + '\n';
+    if (c.account) content += 'شماره حساب: ' + c.account + '\n';
+    if (c.iban) content += 'شبا: IR' + c.iban + '\n';
     document.getElementById('singleQrTitle').innerText = 'QR • ' + c.holder;
-    const box = document.getElementById('singleQrcode');
-    box.innerHTML = '';
-    new QRCode(box, { text: content, width: 230, height: 230, colorDark: '#0b1220', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.M });
     document.getElementById('singleQrModal').classList.remove('hidden');
+    setTimeout(function() {
+        makeQRCode(document.getElementById('singleQrcode'), content, 230);
+    }, 80);
 }
 function closeSingleQr() { document.getElementById('singleQrModal').classList.add('hidden'); }
 
