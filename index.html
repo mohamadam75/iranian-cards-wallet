@@ -285,6 +285,27 @@
     </button>
 </div>
 
+
+<!-- ========== CUSTOMER VIEW (اسکن QR مشتری) ========== -->
+<div id="customerView" class="fixed inset-0 z-[90] bg-[#0b1220] overflow-y-auto hidden" style="padding: env(safe-area-inset-top) 12px calc(24px + env(safe-area-inset-bottom));">
+    <div class="w-full max-w-md mx-auto py-4">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h1 class="text-lg font-bold text-slate-100">کارت‌ها برای واریز</h1>
+                <p class="text-[11px] text-slate-400" id="customerCount">۰ کارت</p>
+            </div>
+            <button type="button" onclick="closeCustomerView()" id="btnCloseCustomer" class="hidden text-xs text-slate-400 bg-slate-800 px-3 py-2 rounded-xl">بستن</button>
+        </div>
+        <p class="text-[11px] text-slate-500 mb-4 leading-relaxed">شماره کارت مورد نظر را کپی کنید و در اپ بانکی بچسبانید.</p>
+        <div id="customerList" class="flex flex-col gap-3"></div>
+        <div id="customerEmpty" class="hidden text-center py-12 text-slate-500 text-sm">اطلاعاتی برای نمایش نیست</div>
+        <div id="customerSyncBar" class="hidden mt-6 p-4 rounded-2xl bg-indigo-500/10 border border-indigo-400/20">
+            <p class="text-xs text-slate-300 mb-3">این لیست از دستگاه دیگر آمده. می‌خواهید به کارت‌های ذخیره‌شده اضافه شود؟</p>
+            <button type="button" onclick="importSharedCards()" class="w-full bg-indigo-600 text-white py-3 rounded-xl text-sm font-semibold">ذخیره روی این دستگاه</button>
+        </div>
+    </div>
+</div>
+
 <!-- ========== SHARE QR (برای مشتری) ========== -->
 <div id="shareModal" class="modal-bg hidden fade-in" onclick="if(event.target===this)closeShareQR()">
     <div class="modal-sheet slide-up p-5 pb-8">
@@ -299,26 +320,21 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
         </div>
-        <p class="text-[11px] text-slate-400 mb-4 leading-relaxed">
-            مشتری این کد را اسکن می‌کند و لیست کارت‌ها را می‌بیند. می‌تواند شماره مورد نظر را لمس‌کرده و کپی کند.
+        <p class="text-[11px] text-slate-400 mb-3 leading-relaxed">
+            مشتری QR را اسکن می‌کند و وارد <b class="text-slate-200">صفحه کپی کارت‌ها</b> می‌شود (نام بانک + دکمه کپی). دیگر به گوگل نمی‌رود.
         </p>
 
-        <!-- تب‌های نوع QR -->
-        <div class="flex gap-2 mb-4">
-            <button type="button" id="tabFull" onclick="setShareMode('full')" class="flex-1 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white">لیست کامل</button>
-            <button type="button" id="tabCompact" onclick="setShareMode('compact')" class="flex-1 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300">فشرده (فقط کارت)</button>
-        </div>
+        <div id="shareQrcode" class="flex justify-center min-h-[240px] items-center mb-3"></div>
+        <p id="shareQrHint" class="text-[10px] text-center text-slate-500 mb-3"></p>
 
-        <div id="shareQrcode" class="flex justify-center min-h-[240px] items-center mb-4"></div>
-
-        <div class="bg-slate-900/80 rounded-xl p-3 border border-slate-800 mb-4 max-h-36 overflow-y-auto no-scroll">
-            <p class="text-[10px] text-slate-500 mb-1.5">پیش‌نمایش متنی که مشتری می‌بیند:</p>
-            <pre id="sharePreview" class="text-[11px] text-slate-300 whitespace-pre-wrap leading-relaxed select-text ltr text-right" style="direction:rtl;text-align:right;font-family:Vazirmatn,sans-serif!important;letter-spacing:0;font-weight:400"></pre>
-        </div>
-
+        <button type="button" onclick="copyShareLink()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl text-xs font-semibold mb-2 flex items-center justify-center gap-2">
+            کپی لینک صفحه مشتری
+        </button>
         <button type="button" onclick="copyShareText()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 py-3 rounded-xl text-xs font-semibold mb-2 flex items-center justify-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-            کپی متن لیست
+            کپی متن ساده (بدون لینک)
+        </button>
+        <button type="button" onclick="previewCustomerPage()" class="w-full bg-slate-800/60 border border-slate-700 text-slate-300 py-2.5 rounded-xl text-xs font-semibold mb-2">
+            پیش‌نمایش صفحه مشتری
         </button>
         <button type="button" onclick="closeShareQR()" class="w-full text-slate-500 py-2 text-xs">بستن</button>
     </div>
@@ -388,13 +404,16 @@
             </div>
 
             <div class="bg-slate-900/70 rounded-2xl p-4 border border-slate-800">
-                <p class="text-sm font-medium mb-1">پشتیبان‌گیری</p>
-                <p class="text-[11px] text-slate-500 mb-3">خروجی یا بازیابی JSON</p>
-                <div class="flex gap-2">
+                <p class="text-sm font-medium mb-1">پشتیبان‌گیری و همگام‌سازی</p>
+                <p class="text-[11px] text-slate-500 mb-3">خروجی فایل، یا لینک برای انتقال کارت‌ها بین گوشی و کامپیوتر</p>
+                <div class="flex gap-2 mb-2">
                     <button type="button" onclick="exportCards()" class="flex-1 bg-emerald-500/15 border border-emerald-400/25 text-emerald-400 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5">خروجی</button>
                     <button type="button" onclick="document.getElementById('importFile').click()" class="flex-1 bg-sky-500/15 border border-sky-400/25 text-sky-400 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5">بازیابی</button>
                     <input type="file" id="importFile" accept=".json,application/json" class="hidden" onchange="importCards(event)">
                 </div>
+                <button type="button" onclick="copySyncLink()" class="w-full bg-violet-500/15 border border-violet-400/25 text-violet-300 py-2.5 rounded-xl text-xs font-semibold">
+                    کپی لینک همگام‌سازی (گوشی ↔ سیستم)
+                </button>
             </div>
 
             <div class="bg-slate-900/70 rounded-2xl p-4 border border-slate-800">
@@ -567,8 +586,15 @@ let scannerFromForm = false;
 
 window.addEventListener('DOMContentLoaded', () => {
     loadCards();
+    if (handleHashRoute()) return; // صفحه مشتری / همگام‌سازی
     checkPinLock();
     updatePinUI();
+});
+window.addEventListener('hashchange', function() {
+    if (handleHashRoute()) return;
+    document.getElementById('customerView').classList.add('hidden');
+    document.getElementById('mainApp').classList.remove('hidden');
+    document.getElementById('fabBar').classList.remove('hidden');
 });
 
 function loadCards() {
@@ -825,146 +851,246 @@ function renderCards() {
     });
 }
 
-/* ===== SHARE QR (مشتری) ===== */
-/* QR فقط با محتوای فشرده/ASCII تا overflow نشود. متن کامل در پیش‌نمایش و کپی می‌ماند. */
+/* ===== SHARE QR (مشتری) + صفحه کپی + همگام‌سازی ===== */
 
-function shortBankName(name) {
-    return (name || '').replace(/^بانک\s+/, '').trim();
+function utf8ToB64(str) {
+    return btoa(unescape(encodeURIComponent(str)));
+}
+function b64ToUtf8(str) {
+    try {
+        return decodeURIComponent(escape(atob(str)));
+    } catch (e) {
+        try { return decodeURIComponent(atob(str)); } catch (e2) { return ''; }
+    }
 }
 
-function buildShareText(mode, forQR) {
-    if (!cards.length) return '';
-    if (forQR) {
-        // حداکثر فشرده: شماره کارت + نام کوتاه (حداقل بایت)
-        var lines = [];
-        cards.forEach(function(c, i) {
-            var num = (c.cardNumber || '').replace(/\D/g, '');
-            var h = (c.holder || '').trim();
-            if (h.length > 14) h = h.slice(0, 14);
-            lines.push((i + 1) + '.' + h);
-            lines.push(num);
-        });
-        return lines.join('\n');
-    }
-    if (mode === 'compact') {
-        var t = '';
-        cards.forEach(function(c, i) {
-            t += (i + 1) + ') ' + getBankInfo(c.cardNumber).name + ' - ' + (c.holder || '') + '\n';
-            t += (c.cardNumber || '').replace(/\s/g, '') + '\n\n';
-        });
-        return t.trim();
-    }
-    var t = 'اطلاعات کارت برای واریز\n\n';
-    cards.forEach(function(c, i) {
-        var bank = getBankInfo(c.cardNumber);
-        t += (i + 1) + '. ' + bank.name + '\n';
-        t += 'نام: ' + c.holder + '\n';
-        t += 'کارت: ' + (c.cardNumber || '').replace(/\s/g, '') + '\n';
-        if (c.account) t += 'حساب: ' + c.account + '\n';
-        if (c.iban) t += 'شبا: IR' + c.iban + '\n';
-        t += '----------\n';
+/** داده فشرده برای URL: [{n,h,i,a}] */
+function packCardsForShare(list) {
+    var arr = (list || cards).map(function(c) {
+        var o = { n: (c.cardNumber || '').replace(/\D/g, ''), h: c.holder || '' };
+        if (c.iban) o.i = String(c.iban).replace(/\D/g, '');
+        if (c.account) o.a = String(c.account).replace(/\D/g, '');
+        return o;
     });
-    t += '\nبا لمس طولانی روی شماره کپی کنید.';
-    return t;
+    return utf8ToB64(JSON.stringify(arr));
+}
+
+function unpackSharedCards(b64) {
+    try {
+        var arr = JSON.parse(b64ToUtf8(b64));
+        if (!Array.isArray(arr)) return [];
+        return arr.map(function(o) {
+            var num = String(o.n || o.cardNumber || '').replace(/\D/g, '');
+            var formatted = num.replace(/(.{4})/g, '$1 ').trim();
+            return {
+                cardNumber: formatted,
+                holder: o.h || o.holder || '',
+                iban: o.i || o.iban || '',
+                account: o.a || o.account || ''
+            };
+        }).filter(function(c) { return c.cardNumber.replace(/\s/g, '').length >= 16; });
+    } catch (e) {
+        console.warn('unpack failed', e);
+        return [];
+    }
+}
+
+function getShareBaseUrl() {
+    // هر جایی که فایل هاست شده (گیت‌هاب پیج، لوکال، ...)
+    return location.origin + location.pathname + location.search;
+}
+
+function buildCustomerUrl(mode) {
+    // mode: 'c' مشتری فقط‌خواندنی | 'sync' همگام‌سازی بین دستگاه
+    var packed = packCardsForShare(cards);
+    return getShareBaseUrl() + '#' + (mode || 'c') + '=' + packed;
+}
+
+var sharedCardsCache = [];
+
+function handleHashRoute() {
+    var hash = location.hash || '';
+    var m = hash.match(/^#(c|sync)=(.+)$/);
+    if (!m) return false;
+    var mode = m[1];
+    var data = m[2];
+    sharedCardsCache = unpackSharedCards(data);
+    showCustomerView(sharedCardsCache, mode === 'sync');
+    return true;
+}
+
+function showCustomerView(list, isSync) {
+    document.getElementById('lockScreen').classList.add('hidden');
+    document.getElementById('mainApp').classList.add('hidden');
+    document.getElementById('fabBar').classList.add('hidden');
+    document.getElementById('customerView').classList.remove('hidden');
+
+    var hasLocal = false;
+    try { hasLocal = !!(localStorage.getItem('my_bank_cards_v2') || localStorage.getItem('my_bank_cards')); } catch(e) {}
+    document.getElementById('btnCloseCustomer').classList.toggle('hidden', !hasLocal && !isSync);
+
+    var box = document.getElementById('customerList');
+    var empty = document.getElementById('customerEmpty');
+    box.innerHTML = '';
+    document.getElementById('customerCount').innerText = toFa((list || []).length) + ' کارت';
+
+    if (!list || !list.length) {
+        empty.classList.remove('hidden');
+        document.getElementById('customerSyncBar').classList.add('hidden');
+        return;
+    }
+    empty.classList.add('hidden');
+
+    list.forEach(function(card, idx) {
+        var bank = getBankInfo(card.cardNumber);
+        var raw = (card.cardNumber || '').replace(/\s/g, '');
+        var el = document.createElement('div');
+        el.className = 'rounded-2xl border border-slate-800 overflow-hidden';
+        el.innerHTML =
+            '<div class="p-4 text-white" style="background:' + bank.bg + '">' +
+            '<div class="text-xs opacity-80 mb-1">' + escapeHtml(bank.name) + '</div>' +
+            '<div class="text-lg font-bold ltr tracking-wider mb-1" style="direction:ltr;text-align:left">' + escapeHtml(card.cardNumber) + '</div>' +
+            '<div class="text-sm font-medium">' + escapeHtml(card.holder || '—') + '</div>' +
+            '</div>' +
+            '<div class="bg-slate-900/90 p-3 flex flex-col gap-2">' +
+            '<button type="button" class="w-full bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-semibold" data-copy="' + raw + '">کپی شماره کارت</button>' +
+            (card.iban ? '<button type="button" class="w-full bg-amber-600/20 border border-amber-500/30 text-amber-300 py-2 rounded-xl text-xs font-semibold" data-copy="IR' + String(card.iban).replace(/\D/g,'') + '">کپی شبا IR' + String(card.iban).replace(/\D/g,'') + '</button>' : '') +
+            (card.account ? '<button type="button" class="w-full bg-emerald-600/15 border border-emerald-500/25 text-emerald-300 py-2 rounded-xl text-xs font-semibold" data-copy="' + String(card.account).replace(/"/g,'') + '">کپی شماره حساب</button>' : '') +
+            '</div>';
+        el.querySelectorAll('[data-copy]').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                copyToClipboard(btn.getAttribute('data-copy'), 'کپی شد');
+            });
+        });
+        box.appendChild(el);
+    });
+
+    document.getElementById('customerSyncBar').classList.toggle('hidden', !isSync);
+}
+
+function closeCustomerView() {
+    // پاک کردن هش و برگشت به اپ
+    history.replaceState(null, '', location.pathname + location.search);
+    document.getElementById('customerView').classList.add('hidden');
+    document.getElementById('mainApp').classList.remove('hidden');
+    document.getElementById('fabBar').classList.remove('hidden');
+    checkPinLock();
+    renderCards();
+}
+
+function importSharedCards() {
+    if (!sharedCardsCache.length) return;
+    var add = sharedCardsCache.slice();
+    if (cards.length && !confirm(add.length + ' کارت به لیست فعلی اضافه شود؟')) return;
+    // جلوگیری از تکراری
+    var existing = {};
+    cards.forEach(function(c) { existing[(c.cardNumber || '').replace(/\s/g, '')] = true; });
+    var added = 0;
+    add.forEach(function(c) {
+        var key = (c.cardNumber || '').replace(/\s/g, '');
+        if (!existing[key]) { cards.push(c); existing[key] = true; added++; }
+    });
+    saveToStorage();
+    showToast(added + ' کارت ذخیره شد');
+    closeCustomerView();
+}
+
+function previewCustomerPage() {
+    if (!cards.length) { showToast('کارتی نیست', true); return; }
+    closeShareQR();
+    sharedCardsCache = cards.slice();
+    showCustomerView(cards, false);
+    document.getElementById('btnCloseCustomer').classList.remove('hidden');
 }
 
 function makeQRCode(container, text, size) {
     if (!container) return false;
     container.innerHTML = '';
     size = size || 220;
-
     if (typeof QRious === 'undefined') {
         container.innerHTML = '<p class="text-rose-400 text-xs text-center p-4">کتابخانه QR لود نشد. صفحه را رفرش کنید.</p>';
         return false;
     }
-    if (!text || !String(text).trim()) {
-        container.innerHTML = '<p class="text-slate-400 text-xs text-center p-4">متنی برای ساخت QR نیست</p>';
+    if (!text) {
+        container.innerHTML = '<p class="text-slate-400 text-xs text-center p-4">محتوایی نیست</p>';
         return false;
     }
-
-    function tryValue(val) {
-        try {
-            var canvas = document.createElement('canvas');
-            new QRious({
-                element: canvas,
-                value: val,
-                size: size,
-                level: 'L',
-                background: '#ffffff',
-                foreground: '#0b1220',
-                padding: 8
-            });
-            canvas.style.borderRadius = '14px';
-            canvas.style.boxShadow = '0 12px 32px rgba(0,0,0,0.5)';
-            container.innerHTML = '';
-            container.appendChild(canvas);
-            return true;
-        } catch (e) {
-            console.warn('QR try failed', e && e.message);
-            return false;
-        }
-    }
-
-    // 1) متن داده‌شده
-    if (tryValue(text)) return true;
-
-    // 2) فقط شماره‌ها (بیشترین ظرفیت)
-    var onlyNums = cards.map(function(c, i) {
-        return (i + 1) + '.' + (c.cardNumber || '').replace(/\D/g, '');
-    }).join('\n');
-    if (tryValue(onlyNums)) {
-        showToast('فقط شماره‌های کارت در QR قرار گرفت');
+    try {
+        var canvas = document.createElement('canvas');
+        new QRious({
+            element: canvas,
+            value: text,
+            size: size,
+            level: text.length > 300 ? 'L' : 'M',
+            background: '#ffffff',
+            foreground: '#0b1220',
+            padding: 10
+        });
+        canvas.style.borderRadius = '14px';
+        canvas.style.boxShadow = '0 12px 32px rgba(0,0,0,0.5)';
+        container.appendChild(canvas);
         return true;
+    } catch (e) {
+        console.warn('QR error', e);
+        container.innerHTML = '<p class="text-rose-400 text-xs text-center p-4">خطا در ساخت QR. از «کپی لینک» استفاده کنید.</p>';
+        return false;
     }
-
-    // 3) محدود به ۲۵ کارت
-    var limited = cards.slice(0, 25).map(function(c, i) {
-        return (i + 1) + '.' + (c.cardNumber || '').replace(/\D/g, '');
-    }).join('\n');
-    if (cards.length > 25) limited += '\n+' + (cards.length - 25);
-    if (tryValue(limited)) {
-        showToast('فقط ۲۵ کارت اول — از کپی متن استفاده کنید');
-        return true;
-    }
-
-    container.innerHTML = '<p class="text-rose-400 text-xs text-center p-4 leading-relaxed">تعداد کارت‌ها برای یک QR زیاد است.<br>از دکمه «کپی متن لیست» استفاده کنید.</p>';
-    return false;
 }
 
 function openShareQR() {
     if (!cards.length) { showToast('کارتی وجود ندارد', true); return; }
-    if (cards.length > 8) shareMode = 'compact';
     document.getElementById('shareModal').classList.remove('hidden');
-    setTimeout(function() { setShareMode(shareMode); }, 60);
+    setTimeout(function() {
+        var url = buildCustomerUrl('c');
+        var hint = document.getElementById('shareQrHint');
+        // لینک خیلی بلند برای QR مناسب نیست
+        if (url.length > 1800) {
+            document.getElementById('shareQrcode').innerHTML = '<p class="text-amber-400 text-xs text-center p-4 leading-relaxed">تعداد کارت‌ها زیاد است و لینک برای QR بلند شده.<br>از دکمه «کپی لینک صفحه مشتری» استفاده کنید و لینک را برای مشتری بفرستید.</p>';
+            if (hint) hint.textContent = 'لینک را کپی و ارسال کنید (QR برای این حجم داده مناسب نیست)';
+            return;
+        }
+        var ok = makeQRCode(document.getElementById('shareQrcode'), url, 240);
+        if (hint) {
+            if (ok) hint.textContent = 'اسکن → صفحه کپی با نام بانک و دکمه کپی باز می‌شود';
+            else hint.textContent = 'QR ساخته نشد؛ لینک را کپی کنید';
+        }
+    }, 60);
 }
 function closeShareQR() { document.getElementById('shareModal').classList.add('hidden'); }
 
-function setShareMode(mode) {
-    shareMode = mode;
-    var tabFull = document.getElementById('tabFull');
-    var tabCompact = document.getElementById('tabCompact');
-    if (tabFull) tabFull.className = 'flex-1 py-2 rounded-xl text-xs font-semibold ' + (mode === 'full' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-300');
-    if (tabCompact) tabCompact.className = 'flex-1 py-2 rounded-xl text-xs font-semibold ' + (mode === 'compact' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-300');
-
-    var preview = document.getElementById('sharePreview');
-    if (preview) preview.textContent = buildShareText(mode, false);
-
-    // QR همیشه با نسخه فوق‌فشرده
-    makeQRCode(document.getElementById('shareQrcode'), buildShareText(mode, true), 236);
+function copyShareLink() {
+    if (!cards.length) { showToast('کارتی نیست', true); return; }
+    copyToClipboard(buildCustomerUrl('c'), 'لینک صفحه مشتری');
 }
 function copyShareText() {
-    copyToClipboard(buildShareText(shareMode, false), 'لیست کارت‌ها');
+    if (!cards.length) return;
+    var t = '';
+    cards.forEach(function(c, i) {
+        var bank = getBankInfo(c.cardNumber);
+        t += (i + 1) + '. ' + bank.name + ' — ' + c.holder + '\n';
+        t += (c.cardNumber || '').replace(/\s/g, '') + '\n';
+        if (c.iban) t += 'IR' + c.iban + '\n';
+        t += '\n';
+    });
+    copyToClipboard(t.trim(), 'متن لیست');
+}
+function copySyncLink() {
+    if (!cards.length) { showToast('کارتی نیست', true); return; }
+    copyToClipboard(buildCustomerUrl('sync'), 'لینک همگام‌سازی');
+    showToast('لینک را در دستگاه دیگر باز کنید');
+    closeSettings();
 }
 
 /* ===== SINGLE QR ===== */
 function showSingleQR(index) {
     var c = cards[index]; if (!c) return;
-    var content = (c.holder || '') + '\n' + (c.cardNumber || '').replace(/\D/g, '');
-    if (c.iban) content += '\nIR' + String(c.iban).replace(/\D/g, '');
+    // لینک صفحه مشتری فقط برای همین یک کارت
+    var packed = packCardsForShare([c]);
+    var url = getShareBaseUrl() + '#c=' + packed;
     document.getElementById('singleQrTitle').innerText = 'QR • ' + (c.holder || 'کارت');
     document.getElementById('singleQrModal').classList.remove('hidden');
     setTimeout(function() {
-        makeQRCode(document.getElementById('singleQrcode'), content, 230);
+        makeQRCode(document.getElementById('singleQrcode'), url, 230);
     }, 60);
 }
 function closeSingleQr() { document.getElementById('singleQrModal').classList.add('hidden'); }
