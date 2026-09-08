@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>مدیریت کارت‌های بانکی | نسخه حرفه‌ای</title>
+    <title>کارت‌های من | مدیریت هوشمند</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#0f172a">
-    <meta name="description" content="مدیریت امن و هوشمند کارت‌های بانکی با پشتیبانی از ورودی صوتی، QR کد و رمزگذاری">
+    <meta name="theme-color" content="#0b1220">
+    <meta name="description" content="مدیریت امن کارت‌های بانکی با QR تعاملی، اسکن و ورودی صوتی">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,1191 +16,1117 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- اسکنر QR -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
     <style>
+        :root {
+            --bg: #0b1220;
+            --surface: rgba(22, 32, 51, 0.82);
+            --border: rgba(148, 163, 184, 0.12);
+            --accent: #6366f1;
+        }
         * {
             font-family: 'Vazirmatn', sans-serif !important;
             -webkit-tap-highlight-color: transparent;
-            user-select: none;
+            box-sizing: border-box;
+        }
+        html, body {
+            background: var(--bg);
+            color: #f1f5f9;
+            overscroll-behavior: none;
+            min-height: 100%;
+            min-height: 100dvh;
         }
         body {
-            background-color: #0f172a;
-            color: #f8fafc;
-            padding-bottom: 100px;
-            overscroll-behavior: none;
+            padding: env(safe-area-inset-top) 12px calc(90px + env(safe-area-inset-bottom));
+            max-width: 480px;
+            margin: 0 auto;
         }
-        .glass-panel {
-            background: rgba(30, 41, 59, 0.75);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+        .glass {
+            background: var(--surface);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid var(--border);
         }
         .bank-card {
             aspect-ratio: 1.586 / 1;
             position: relative;
             overflow: hidden;
-            border-radius: 20px;
-            box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.5);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 18px;
+            box-shadow: 0 14px 36px -8px rgba(0,0,0,0.55);
+            transition: transform 0.25s cubic-bezier(0.22,1,0.36,1);
         }
-        .bank-card:active {
-            transform: scale(0.98);
-        }
+        .bank-card:active { transform: scale(0.985); }
         .card-chip {
-            width: 42px;
-            height: 32px;
-            background: linear-gradient(135deg, #ffe082 0%, #ffb300 100%);
-            border-radius: 6px;
-            position: relative;
-            box-shadow: inset 0 1px 2px rgba(255,255,255,0.4);
+            width: 40px; height: 30px;
+            background: linear-gradient(145deg, #ffe082, #ffb300);
+            border-radius: 5px;
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.45);
         }
-        .shimmer-effect {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(125deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0) 70%);
+        .shimmer {
+            position: absolute; inset: 0;
+            background: linear-gradient(120deg, transparent 35%, rgba(255,255,255,0.14) 50%, transparent 65%);
             pointer-events: none;
-            animation: shimmer 4s infinite;
+            animation: shimmer 5s ease-in-out infinite;
         }
         @keyframes shimmer {
-            0%, 100% { opacity: 0.6; }
-            50% { opacity: 1; }
+            0%, 100% { opacity: 0.45; transform: translateX(-8%); }
+            50% { opacity: 0.9; transform: translateX(8%); }
         }
-        .force-ltr {
+        .ltr {
             direction: ltr !important;
             text-align: left !important;
             unicode-bidi: isolate !important;
-            font-family: 'Courier New', Courier, monospace !important;
-            font-weight: bold;
-            letter-spacing: 2px;
+            font-family: ui-monospace, 'Courier New', monospace !important;
+            font-weight: 700;
+            letter-spacing: 1.5px;
         }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
+        .no-scroll::-webkit-scrollbar { display: none; }
+        .no-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
         @keyframes pulse-mic {
-            0%, 100% { background-color: rgba(225, 29, 72, 0.3); color: #f43f5e; border-color: #f43f5e; }
-            50% { background-color: rgba(225, 29, 72, 0.95); color: #ffffff; border-color: #f43f5e; box-shadow: 0 0 18px rgba(244,63,94,0.7); }
+            0%, 100% { background: rgba(244,63,94,0.25); color: #fb7185; border-color: #f43f5e; }
+            50% { background: rgba(244,63,94,0.95); color: #fff; box-shadow: 0 0 20px rgba(244,63,94,0.55); }
         }
-        .listening {
-            animation: pulse-mic 1.1s infinite ease-in-out;
-        }
+        .listening { animation: pulse-mic 1.05s infinite ease-in-out; }
 
         #qrcode img, #qrcode canvas,
-        #singleQrcode img, #singleQrcode canvas {
-            margin: 0 auto;
-            border-radius: 14px;
-            padding: 14px;
-            background: #ffffff;
-            box-shadow: 0 12px 28px rgba(0,0,0,0.55);
+        #singleQrcode img, #singleQrcode canvas,
+        #shareQrcode img, #shareQrcode canvas {
+            margin: 0 auto; border-radius: 14px; padding: 12px;
+            background: #fff; box-shadow: 0 12px 32px rgba(0,0,0,0.5);
         }
 
-        .toast-enter {
-            animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        @keyframes toastIn {
-            from { opacity: 0; transform: translate(-50%, 20px) scale(0.95); }
-            to { opacity: 1; transform: translate(-50%, 0) scale(1); }
-        }
-
-        .modal-backdrop {
-            animation: fadeIn 0.25s ease-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        .modal-content {
-            animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+        .fade-in { animation: fadeIn 0.28s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .slide-up { animation: slideUp 0.38s cubic-bezier(0.16,1,0.3,1); }
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(40px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .lock-screen {
-            background: radial-gradient(ellipse at top, #1e293b 0%, #0f172a 70%);
+            from { opacity: 0; transform: translateY(48px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         .pin-dot {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            border: 2px solid #64748b;
-            transition: all 0.2s;
+            width: 13px; height: 13px; border-radius: 50%;
+            border: 2px solid #64748b; transition: all 0.18s;
         }
         .pin-dot.filled {
-            background: #6366f1;
-            border-color: #6366f1;
-            box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+            background: #6366f1; border-color: #6366f1;
+            box-shadow: 0 0 12px rgba(99,102,241,0.55);
         }
 
-        .btn-press:active {
-            transform: scale(0.96);
+        .fab {
+            position: fixed;
+            bottom: calc(22px + env(safe-area-inset-bottom));
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 40;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .fab-btn {
+            height: 52px;
+            border-radius: 999px;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            font-weight: 600; font-size: 13px;
+            box-shadow: 0 10px 28px rgba(0,0,0,0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .fab-btn:active { transform: scale(0.96); }
+
+        .chip {
+            padding: 6px 12px; border-radius: 999px; font-size: 11px; font-weight: 500;
+            white-space: nowrap; transition: all 0.2s;
+        }
+        .chip-active { background: #4f46e5; color: #fff; }
+        .chip-idle { background: rgba(30,41,59,0.9); color: #94a3b8; border: 1px solid rgba(148,163,184,0.12); }
+
+        /* اسکنر */
+        #reader { border-radius: 16px; overflow: hidden; }
+        #reader video { border-radius: 16px !important; }
+        #reader__dashboard_section_csr button {
+            background: #4f46e5 !important; border-radius: 10px !important;
         }
 
-        .card-actions-bar {
-            background: linear-gradient(to top, rgba(15,23,42,0.95), transparent);
+        .toast {
+            position: fixed; bottom: calc(88px + env(safe-area-inset-bottom));
+            left: 50%; transform: translateX(-50%);
+            z-index: 80; padding: 10px 18px; border-radius: 999px;
+            font-size: 12px; font-weight: 500; box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+            display: flex; align-items: center; gap: 8px;
+            opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        .modal-bg {
+            position: fixed; inset: 0; z-index: 50;
+            background: rgba(0,0,0,0.72); backdrop-filter: blur(8px);
+            display: flex; align-items: flex-end; justify-content: center;
+        }
+        @media (min-width: 480px) {
+            .modal-bg { align-items: center; }
+        }
+        .modal-sheet {
+            width: 100%; max-width: 420px;
+            background: #111827; border: 1px solid rgba(148,163,184,0.1);
+            border-radius: 24px 24px 0 0;
+            max-height: 92dvh; overflow-y: auto;
+        }
+        @media (min-width: 480px) {
+            .modal-sheet { border-radius: 24px; }
         }
 
-        input, button, select {
-            touch-action: manipulation;
-        }
+        input, button, select, textarea { touch-action: manipulation; }
+        .select-text { user-select: text; -webkit-user-select: text; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center p-4 antialiased">
+<body>
 
-    <!-- ========== LOCK SCREEN ========== -->
-    <div id="lockScreen" class="fixed inset-0 z-[100] lock-screen flex flex-col items-center justify-center p-6 hidden">
-        <div class="w-20 h-20 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center mb-6">
-            <svg class="w-10 h-10 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-            </svg>
-        </div>
-        <h2 class="text-xl font-bold mb-1">قفل برنامه</h2>
-        <p class="text-sm text-slate-400 mb-8 text-center" id="lockHint">رمز عبور ۴ رقمی خود را وارد کنید</p>
-        
-        <div class="flex gap-3 mb-8" id="pinDots">
-            <div class="pin-dot" data-idx="0"></div>
-            <div class="pin-dot" data-idx="1"></div>
-            <div class="pin-dot" data-idx="2"></div>
-            <div class="pin-dot" data-idx="3"></div>
-        </div>
+<!-- ========== LOCK ========== -->
+<div id="lockScreen" class="fixed inset-0 z-[100] flex flex-col items-center justify-center p-6 hidden" style="background: radial-gradient(ellipse at 50% 0%, #1e293b 0%, #0b1220 65%);">
+    <div class="w-18 h-18 w-[72px] h-[72px] rounded-2xl bg-indigo-500/15 border border-indigo-400/25 flex items-center justify-center mb-5">
+        <svg class="w-9 h-9 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+    </div>
+    <h2 class="text-lg font-bold mb-1">قفل برنامه</h2>
+    <p class="text-sm text-slate-400 mb-7 text-center" id="lockHint">رمز ۴ رقمی را وارد کنید</p>
+    <div class="flex gap-3.5 mb-8" id="pinDots">
+        <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+    </div>
+    <div class="grid grid-cols-3 gap-3 w-full max-w-[250px]">
+        <button type="button" onclick="pressPin(1)" class="h-14 rounded-2xl bg-slate-800/90 text-xl font-semibold active:scale-95 transition">1</button>
+        <button type="button" onclick="pressPin(2)" class="h-14 rounded-2xl bg-slate-800/90 text-xl font-semibold active:scale-95 transition">2</button>
+        <button type="button" onclick="pressPin(3)" class="h-14 rounded-2xl bg-slate-800/90 text-xl font-semibold active:scale-95 transition">3</button>
+        <button type="button" onclick="pressPin(4)" class="h-14 rounded-2xl bg-slate-800/90 text-xl font-semibold active:scale-95 transition">4</button>
+        <button type="button" onclick="pressPin(5)" class="h-14 rounded-2xl bg-slate-800/90 text-xl font-semibold active:scale-95 transition">5</button>
+        <button type="button" onclick="pressPin(6)" class="h-14 rounded-2xl bg-slate-800/90 text-xl font-semibold active:scale-95 transition">6</button>
+        <button type="button" onclick="pressPin(7)" class="h-14 rounded-2xl bg-slate-800/90 text-xl font-semibold active:scale-95 transition">7</button>
+        <button type="button" onclick="pressPin(8)" class="h-14 rounded-2xl bg-slate-800/90 text-xl font-semibold active:scale-95 transition">8</button>
+        <button type="button" onclick="pressPin(9)" class="h-14 rounded-2xl bg-slate-800/90 text-xl font-semibold active:scale-95 transition">9</button>
+        <button type="button" onclick="clearPin()" class="h-14 rounded-2xl bg-slate-800/50 text-sm text-slate-400 active:scale-95 transition">پاک</button>
+        <button type="button" onclick="pressPin(0)" class="h-14 rounded-2xl bg-slate-800/90 text-xl font-semibold active:scale-95 transition">0</button>
+        <button type="button" onclick="backspacePin()" class="h-14 rounded-2xl bg-slate-800/50 text-slate-400 active:scale-95 transition flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z"/></svg>
+        </button>
+    </div>
+    <p id="pinError" class="text-rose-400 text-xs mt-5 h-4 opacity-0 transition-opacity">رمز اشتباه است</p>
+</div>
 
-        <div class="grid grid-cols-3 gap-3 w-full max-w-[260px]">
-            <button type="button" onclick="pressPin(1)" class="h-14 rounded-2xl bg-slate-800/80 text-xl font-semibold hover:bg-slate-700 active:scale-95 transition">1</button>
-            <button type="button" onclick="pressPin(2)" class="h-14 rounded-2xl bg-slate-800/80 text-xl font-semibold hover:bg-slate-700 active:scale-95 transition">2</button>
-            <button type="button" onclick="pressPin(3)" class="h-14 rounded-2xl bg-slate-800/80 text-xl font-semibold hover:bg-slate-700 active:scale-95 transition">3</button>
-            <button type="button" onclick="pressPin(4)" class="h-14 rounded-2xl bg-slate-800/80 text-xl font-semibold hover:bg-slate-700 active:scale-95 transition">4</button>
-            <button type="button" onclick="pressPin(5)" class="h-14 rounded-2xl bg-slate-800/80 text-xl font-semibold hover:bg-slate-700 active:scale-95 transition">5</button>
-            <button type="button" onclick="pressPin(6)" class="h-14 rounded-2xl bg-slate-800/80 text-xl font-semibold hover:bg-slate-700 active:scale-95 transition">6</button>
-            <button type="button" onclick="pressPin(7)" class="h-14 rounded-2xl bg-slate-800/80 text-xl font-semibold hover:bg-slate-700 active:scale-95 transition">7</button>
-            <button type="button" onclick="pressPin(8)" class="h-14 rounded-2xl bg-slate-800/80 text-xl font-semibold hover:bg-slate-700 active:scale-95 transition">8</button>
-            <button type="button" onclick="pressPin(9)" class="h-14 rounded-2xl bg-slate-800/80 text-xl font-semibold hover:bg-slate-700 active:scale-95 transition">9</button>
-            <button type="button" onclick="clearPin()" class="h-14 rounded-2xl bg-slate-800/50 text-sm text-slate-400 hover:bg-slate-700 active:scale-95 transition">پاک</button>
-            <button type="button" onclick="pressPin(0)" class="h-14 rounded-2xl bg-slate-800/80 text-xl font-semibold hover:bg-slate-700 active:scale-95 transition">0</button>
-            <button type="button" onclick="backspacePin()" class="h-14 rounded-2xl bg-slate-800/50 text-slate-400 hover:bg-slate-700 active:scale-95 transition flex items-center justify-center">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z"/></svg>
+<!-- ========== MAIN ========== -->
+<div id="mainApp" class="w-full flex flex-col">
+
+    <!-- Header -->
+    <header class="glass sticky top-0 z-30 rounded-2xl px-4 py-3 mb-3 flex items-center justify-between shadow-lg">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center border border-indigo-400/20">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            </div>
+            <div>
+                <h1 class="text-[15px] font-bold leading-tight">کارت‌های من</h1>
+                <p class="text-[11px] text-slate-400" id="cardCountText">۰ کارت</p>
+            </div>
+        </div>
+        <div class="flex gap-1.5">
+            <button type="button" onclick="openSettings()" class="w-9 h-9 rounded-xl bg-slate-800/80 border border-slate-700/80 text-slate-300 flex items-center justify-center active:scale-95 transition" title="تنظیمات">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </button>
+            <button type="button" onclick="openShareQR()" class="bg-amber-500/15 border border-amber-400/25 text-amber-400 hover:bg-amber-500 hover:text-white px-3 py-2 rounded-xl text-[11px] font-semibold flex items-center gap-1.5 transition active:scale-95">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                QR مشتری
             </button>
         </div>
-        <p id="pinError" class="text-rose-400 text-xs mt-5 h-4 opacity-0 transition-opacity">رمز اشتباه است</p>
-    </div>
+    </header>
 
-    <!-- ========== MAIN APP ========== -->
-    <div id="mainApp" class="w-full max-w-md flex flex-col items-center">
-
-        <!-- Header -->
-        <header class="w-full sticky top-0 z-30 pt-3 pb-3 mb-3 glass-panel rounded-2xl px-4 flex items-center justify-between shadow-lg">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-indigo-600/30 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                </div>
-                <div>
-                    <h1 class="text-base font-bold leading-tight">کارت‌های من</h1>
-                    <p class="text-[11px] text-slate-400" id="cardCountText">۰ کارت ثبت شده</p>
-                </div>
-            </div>
-            <div class="flex gap-1.5">
-                <button type="button" onclick="openSettings()" class="w-9 h-9 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-300 flex items-center justify-center hover:bg-slate-700 transition" title="تنظیمات">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                </button>
-                <button type="button" onclick="showAllCardsQR()" class="bg-amber-600/20 border border-amber-500/30 text-amber-400 hover:bg-amber-600 hover:text-white px-2.5 py-2 rounded-xl text-[11px] font-semibold flex items-center gap-1 transition-all">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
-                    QR
-                </button>
-                <button type="button" onclick="openAddModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded-xl text-[11px] font-semibold flex items-center gap-1 shadow-lg shadow-indigo-600/25">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
-                    جدید
-                </button>
-            </div>
-        </header>
-
-        <!-- Search + Filters -->
-        <div class="w-full mb-4 space-y-2">
-            <div class="relative flex items-center">
-                <svg class="w-4 h-4 absolute right-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                <input type="text" id="searchInput" oninput="renderCards()" placeholder="جستجو: بانک، نام، شماره کارت یا شبا..."
-                    class="w-full bg-slate-900 border border-slate-800 rounded-xl pr-10 pl-4 py-2.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30">
-            </div>
-            <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                <button type="button" onclick="setSort('default')" id="sortDefault" class="sort-btn shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-medium bg-indigo-600 text-white">پیش‌فرض</button>
-                <button type="button" onclick="setSort('bank')" id="sortBank" class="sort-btn shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-medium bg-slate-800 text-slate-300">بر اساس بانک</button>
-                <button type="button" onclick="setSort('name')" id="sortName" class="sort-btn shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-medium bg-slate-800 text-slate-300">بر اساس نام</button>
-                <button type="button" onclick="toggleMask()" id="btnMask" class="shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-medium bg-slate-800 text-slate-300 flex items-center gap-1">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
-                    <span id="maskText">مخفی کردن</span>
-                </button>
-            </div>
+    <!-- Search + chips -->
+    <div class="mb-3 space-y-2.5">
+        <div class="relative">
+            <svg class="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="search" id="searchInput" oninput="renderCards()" placeholder="جستجو بانک، نام، شماره یا شبا..."
+                class="w-full bg-slate-900/90 border border-slate-800 rounded-xl pr-10 pl-4 py-2.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/25">
         </div>
-
-        <!-- Cards List -->
-        <main id="cardsList" class="w-full flex flex-col gap-5"></main>
-
-        <!-- Empty State -->
-        <div id="emptyState" class="hidden w-full flex-col items-center justify-center py-16 px-4 text-center">
-            <div class="w-20 h-20 rounded-full bg-slate-800/80 flex items-center justify-center text-slate-500 mb-4 border border-slate-700/50">
-                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-            </div>
-            <h3 class="text-base font-semibold text-slate-300 mb-1" id="emptyTitle">کارت بانکی یافت نشد</h3>
-            <p class="text-xs text-slate-500 mb-6" id="emptyDesc">برای افزودن کارت، دکمه زیر را فشار دهید.</p>
-            <button type="button" onclick="openAddModal()" class="bg-slate-800 text-indigo-400 border border-indigo-500/30 px-5 py-2.5 rounded-xl text-sm hover:bg-slate-700 transition">
-                افزودن کارت جدید
+        <div class="flex gap-2 overflow-x-auto no-scroll pb-0.5">
+            <button type="button" onclick="setSort('default')" id="sortDefault" class="chip chip-active">همه</button>
+            <button type="button" onclick="setSort('bank')" id="sortBank" class="chip chip-idle">بانک</button>
+            <button type="button" onclick="setSort('name')" id="sortName" class="chip chip-idle">نام</button>
+            <button type="button" onclick="toggleMask()" id="btnMask" class="chip chip-idle flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+                <span id="maskText">مخفی</span>
             </button>
         </div>
     </div>
 
-    <!-- ========== MODAL: Settings ========== -->
-    <div id="settingsModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-end sm:items-center justify-center hidden modal-backdrop">
-        <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl max-h-[85vh] overflow-y-auto no-scrollbar modal-content">
-            <div class="flex items-center justify-between mb-5 border-b border-slate-800 pb-3">
-                <h3 class="text-base font-bold text-slate-100 flex items-center gap-2">
-                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    تنظیمات
-                </h3>
-                <button type="button" onclick="closeSettings()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
+    <!-- List -->
+    <main id="cardsList" class="flex flex-col gap-4"></main>
+
+    <!-- Empty -->
+    <div id="emptyState" class="hidden flex-col items-center justify-center py-14 px-4 text-center">
+        <div class="w-[76px] h-[76px] rounded-full bg-slate-800/70 flex items-center justify-center text-slate-500 mb-4 border border-slate-700/40">
+            <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        </div>
+        <h3 class="text-[15px] font-semibold text-slate-300 mb-1" id="emptyTitle">هنوز کارتی ندارید</h3>
+        <p class="text-xs text-slate-500 mb-5 max-w-[260px]" id="emptyDesc">اولین کارت را اضافه کنید یا با اسکن QR وارد کنید.</p>
+        <div class="flex gap-2">
+            <button type="button" onclick="openAddModal()" class="bg-indigo-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium">افزودن کارت</button>
+            <button type="button" onclick="openScanner()" class="bg-slate-800 text-slate-200 border border-slate-700 px-4 py-2.5 rounded-xl text-sm font-medium">اسکن QR</button>
+        </div>
+    </div>
+</div>
+
+<!-- FAB -->
+<div class="fab" id="fabBar">
+    <button type="button" onclick="openScanner()" class="fab-btn px-4 bg-slate-800 border border-slate-700 text-slate-200">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+        اسکن
+    </button>
+    <button type="button" onclick="openAddModal()" class="fab-btn px-5 bg-indigo-600 text-white shadow-indigo-600/30">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+        کارت جدید
+    </button>
+</div>
+
+<!-- ========== SHARE QR (برای مشتری) ========== -->
+<div id="shareModal" class="modal-bg hidden fade-in" onclick="if(event.target===this)closeShareQR()">
+    <div class="modal-sheet slide-up p-5 pb-8">
+        <div class="flex items-center justify-between mb-1">
+            <h3 class="text-[15px] font-bold flex items-center gap-2">
+                <span class="w-8 h-8 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                </span>
+                QR برای مشتری
+            </h3>
+            <button type="button" onclick="closeShareQR()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <p class="text-[11px] text-slate-400 mb-4 leading-relaxed">
+            مشتری این کد را اسکن می‌کند و لیست کارت‌ها را می‌بیند. می‌تواند شماره مورد نظر را لمس‌کرده و کپی کند.
+        </p>
+
+        <!-- تب‌های نوع QR -->
+        <div class="flex gap-2 mb-4">
+            <button type="button" id="tabFull" onclick="setShareMode('full')" class="flex-1 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white">لیست کامل</button>
+            <button type="button" id="tabCompact" onclick="setShareMode('compact')" class="flex-1 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300">فشرده (فقط کارت)</button>
+        </div>
+
+        <div id="shareQrcode" class="flex justify-center min-h-[240px] items-center mb-4"></div>
+
+        <div class="bg-slate-900/80 rounded-xl p-3 border border-slate-800 mb-4 max-h-36 overflow-y-auto no-scroll">
+            <p class="text-[10px] text-slate-500 mb-1.5">پیش‌نمایش متنی که مشتری می‌بیند:</p>
+            <pre id="sharePreview" class="text-[11px] text-slate-300 whitespace-pre-wrap leading-relaxed select-text ltr text-right" style="direction:rtl;text-align:right;font-family:Vazirmatn,sans-serif!important;letter-spacing:0;font-weight:400"></pre>
+        </div>
+
+        <button type="button" onclick="copyShareText()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 py-3 rounded-xl text-xs font-semibold mb-2 flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            کپی متن لیست
+        </button>
+        <button type="button" onclick="closeShareQR()" class="w-full text-slate-500 py-2 text-xs">بستن</button>
+    </div>
+</div>
+
+<!-- ========== SINGLE QR ========== -->
+<div id="singleQrModal" class="modal-bg hidden fade-in" onclick="if(event.target===this)closeSingleQr()">
+    <div class="modal-sheet slide-up p-5 pb-8 text-center">
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="text-sm font-bold" id="singleQrTitle">QR کارت</h3>
+            <button type="button" onclick="closeSingleQr()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div id="singleQrcode" class="flex justify-center min-h-[230px] items-center my-3"></div>
+        <button type="button" onclick="closeSingleQr()" class="w-full bg-slate-800 text-slate-300 py-2.5 rounded-xl text-xs font-semibold">بستن</button>
+    </div>
+</div>
+
+<!-- ========== SCANNER ========== -->
+<div id="scannerModal" class="modal-bg hidden fade-in" style="align-items:center">
+    <div class="modal-sheet slide-up p-5 pb-8" style="border-radius:24px;max-height:90dvh">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="text-[15px] font-bold flex items-center gap-2">
+                <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                اسکن برای افزودن کارت
+            </h3>
+            <button type="button" onclick="closeScanner()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <p class="text-[11px] text-slate-400 mb-3 leading-relaxed">
+            QR کارت را اسکن کنید یا شماره ۱۶ رقمی را جلوی دوربین بگیرید. اطلاعات به صورت خودکار پر می‌شود.
+        </p>
+        <div id="reader" class="w-full overflow-hidden rounded-2xl bg-black mb-3" style="min-height:260px"></div>
+        <p id="scanStatus" class="text-center text-xs text-slate-500 h-5 mb-2"></p>
+        <button type="button" onclick="closeScanner()" class="w-full bg-slate-800 text-slate-300 py-2.5 rounded-xl text-xs font-semibold">انصراف</button>
+    </div>
+</div>
+
+<!-- ========== SETTINGS ========== -->
+<div id="settingsModal" class="modal-bg hidden fade-in" onclick="if(event.target===this)closeSettings()">
+    <div class="modal-sheet slide-up p-5 pb-8">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="text-[15px] font-bold flex items-center gap-2">
+                <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                تنظیمات
+            </h3>
+            <button type="button" onclick="closeSettings()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <div class="space-y-3">
+            <div class="bg-slate-900/70 rounded-2xl p-4 border border-slate-800">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <p class="text-sm font-medium">رمز عبور برنامه</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5">پین ۴ رقمی برای ورود</p>
+                    </div>
+                    <span id="pinStatus" class="text-[11px] px-2 py-1 rounded-lg bg-slate-800 text-slate-400">غیرفعال</span>
+                </div>
+                <div class="flex gap-2">
+                    <button type="button" onclick="setupPin()" class="flex-1 bg-indigo-500/15 border border-indigo-400/25 text-indigo-400 py-2.5 rounded-xl text-xs font-semibold">تنظیم / تغییر</button>
+                    <button type="button" onclick="removePin()" id="btnRemovePin" class="px-4 bg-rose-500/10 border border-rose-400/20 text-rose-400 py-2.5 rounded-xl text-xs font-semibold hidden">حذف</button>
+                </div>
             </div>
 
-            <div class="space-y-4">
-                <!-- PIN -->
-                <div class="bg-slate-950/60 rounded-2xl p-4 border border-slate-800">
-                    <div class="flex items-center justify-between mb-3">
-                        <div>
-                            <p class="text-sm font-medium text-slate-200">رمز عبور برنامه</p>
-                            <p class="text-[11px] text-slate-500 mt-0.5">محافظت از اطلاعات با پین ۴ رقمی</p>
-                        </div>
-                        <span id="pinStatus" class="text-[11px] px-2 py-1 rounded-lg bg-slate-800 text-slate-400">غیرفعال</span>
+            <div class="bg-slate-900/70 rounded-2xl p-4 border border-slate-800">
+                <p class="text-sm font-medium mb-1">پشتیبان‌گیری</p>
+                <p class="text-[11px] text-slate-500 mb-3">خروجی یا بازیابی JSON</p>
+                <div class="flex gap-2">
+                    <button type="button" onclick="exportCards()" class="flex-1 bg-emerald-500/15 border border-emerald-400/25 text-emerald-400 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5">خروجی</button>
+                    <button type="button" onclick="document.getElementById('importFile').click()" class="flex-1 bg-sky-500/15 border border-sky-400/25 text-sky-400 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5">بازیابی</button>
+                    <input type="file" id="importFile" accept=".json,application/json" class="hidden" onchange="importCards(event)">
+                </div>
+            </div>
+
+            <div class="bg-slate-900/70 rounded-2xl p-4 border border-slate-800">
+                <p class="text-sm font-medium mb-1">حذف همه</p>
+                <p class="text-[11px] text-slate-500 mb-3">کارت‌ها و رمز پاک می‌شوند</p>
+                <button type="button" onclick="clearAllData()" class="w-full bg-rose-500/10 border border-rose-400/20 text-rose-400 py-2.5 rounded-xl text-xs font-semibold">پاک کردن همه اطلاعات</button>
+            </div>
+            <p class="text-[10px] text-slate-600 text-center pt-1">داده‌ها فقط روی دستگاه شما ذخیره می‌شوند</p>
+        </div>
+    </div>
+</div>
+
+<!-- ========== CONFIRM ========== -->
+<div id="confirmModal" class="modal-bg hidden fade-in" style="align-items:center" onclick="if(event.target===this)closeConfirm()">
+    <div class="w-full max-w-[300px] bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl slide-up text-center mx-4">
+        <div class="w-14 h-14 rounded-full bg-rose-500/15 flex items-center justify-center mx-auto mb-3">
+            <svg class="w-7 h-7 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </div>
+        <h3 class="text-sm font-bold mb-1">حذف کارت؟</h3>
+        <p class="text-xs text-slate-400 mb-5" id="confirmText">آیا مطمئن هستید؟</p>
+        <div class="flex gap-2">
+            <button type="button" onclick="closeConfirm()" class="flex-1 bg-slate-800 text-slate-300 py-2.5 rounded-xl text-xs font-semibold">انصراف</button>
+            <button type="button" id="confirmActionBtn" class="flex-1 bg-rose-600 text-white py-2.5 rounded-xl text-xs font-semibold">حذف</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== ADD / EDIT ========== -->
+<div id="cardModal" class="modal-bg hidden fade-in" onclick="if(event.target===this)closeModal()">
+    <div class="modal-sheet slide-up p-5 pb-8">
+        <div class="flex items-center justify-between mb-4">
+            <h3 id="modalTitle" class="text-[15px] font-bold flex items-center gap-2">
+                <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                <span>ثبت کارت</span>
+            </h3>
+            <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <!-- Preview -->
+        <div class="mb-4">
+            <div id="previewCard" class="bank-card p-4 text-white flex flex-col justify-between" style="background: linear-gradient(135deg,#1e293b,#334155)">
+                <div class="shimmer"></div>
+                <div class="flex justify-between items-start z-10">
+                    <span id="previewBankName" class="font-extrabold text-sm opacity-90">کارت بانکی</span>
+                    <div class="card-chip"></div>
+                </div>
+                <div id="previewNumber" class="text-[17px] ltr font-bold text-center z-10 my-1.5 tracking-wider">•••• •••• •••• ••••</div>
+                <div class="flex justify-between items-end z-10 text-xs">
+                    <div>
+                        <div class="text-[10px] opacity-70">صاحب کارت</div>
+                        <div id="previewHolder" class="font-semibold">--- ---</div>
                     </div>
-                    <div class="flex gap-2">
-                        <button type="button" onclick="setupPin()" class="flex-1 bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 py-2.5 rounded-xl text-xs font-semibold hover:bg-indigo-600 hover:text-white transition">تنظیم / تغییر رمز</button>
-                        <button type="button" onclick="removePin()" id="btnRemovePin" class="px-4 bg-rose-600/15 border border-rose-500/20 text-rose-400 py-2.5 rounded-xl text-xs font-semibold hover:bg-rose-600 hover:text-white transition hidden">حذف</button>
+                    <div id="luhnStatus" class="text-[10px] opacity-0"></div>
+                </div>
+            </div>
+        </div>
+
+        <form id="cardForm" onsubmit="handleSaveCard(event)" class="space-y-3.5">
+            <input type="hidden" id="cardId">
+
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5">شماره کارت (۱۶ رقم)</label>
+                <div class="relative flex items-center">
+                    <input type="text" id="inputCardNumber" inputmode="numeric" maxlength="19" required placeholder="XXXX XXXX XXXX XXXX"
+                        oninput="onCardNumberInput(this)"
+                        class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-[5.5rem] pr-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 ltr">
+                    <div class="absolute left-1.5 flex gap-1">
+                        <button type="button" id="btnVoiceCard" onclick="startVoiceInput('card')" class="px-2 py-1.5 rounded-lg bg-indigo-500/15 border border-indigo-400/25 text-indigo-400 text-[10px] font-medium flex items-center gap-0.5">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z"/></svg>
+                        </button>
+                        <button type="button" onclick="openScannerFromForm()" class="px-2 py-1.5 rounded-lg bg-amber-500/15 border border-amber-400/25 text-amber-400 text-[10px] font-medium flex items-center gap-0.5" title="اسکن">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                        </button>
                     </div>
                 </div>
+                <p id="cardNumberHint" class="text-[10px] text-slate-500 mt-1 h-4"></p>
+            </div>
 
-                <!-- Export / Import -->
-                <div class="bg-slate-950/60 rounded-2xl p-4 border border-slate-800">
-                    <p class="text-sm font-medium text-slate-200 mb-1">پشتیبان‌گیری</p>
-                    <p class="text-[11px] text-slate-500 mb-3">خروجی یا بازیابی کارت‌ها به صورت فایل JSON</p>
-                    <div class="flex gap-2">
-                        <button type="button" onclick="exportCards()" class="flex-1 bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 py-2.5 rounded-xl text-xs font-semibold hover:bg-emerald-600 hover:text-white transition flex items-center justify-center gap-1.5">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                            خروجی
-                        </button>
-                        <button type="button" onclick="document.getElementById('importFile').click()" class="flex-1 bg-sky-600/20 border border-sky-500/30 text-sky-400 py-2.5 rounded-xl text-xs font-semibold hover:bg-sky-600 hover:text-white transition flex items-center justify-center gap-1.5">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                            بازیابی
-                        </button>
-                        <input type="file" id="importFile" accept=".json,application/json" class="hidden" onchange="importCards(event)">
-                    </div>
-                </div>
-
-                <!-- Clear all -->
-                <div class="bg-slate-950/60 rounded-2xl p-4 border border-slate-800">
-                    <p class="text-sm font-medium text-slate-200 mb-1">حذف همه داده‌ها</p>
-                    <p class="text-[11px] text-slate-500 mb-3">تمام کارت‌ها و تنظیمات پاک می‌شوند</p>
-                    <button type="button" onclick="clearAllData()" class="w-full bg-rose-600/15 border border-rose-500/25 text-rose-400 py-2.5 rounded-xl text-xs font-semibold hover:bg-rose-600 hover:text-white transition">
-                        پاک کردن همه اطلاعات
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5">نام صاحب کارت</label>
+                <div class="relative">
+                    <input type="text" id="inputHolder" required placeholder="مثال: علی محمدی"
+                        oninput="document.getElementById('previewHolder').innerText=this.value||'--- ---'"
+                        class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-20 pr-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+                    <button type="button" id="btnVoiceHolder" onclick="startVoiceInput('holder')" class="absolute left-1.5 top-1/2 -translate-y-1/2 px-2.5 py-1.5 rounded-lg bg-indigo-500/15 border border-indigo-400/25 text-indigo-400 text-[10px] font-medium flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z"/></svg>
+                        خواندن
                     </button>
                 </div>
-
-                <p class="text-[10px] text-slate-600 text-center pt-2">نسخه حرفه‌ای • داده‌ها فقط روی دستگاه شما ذخیره می‌شوند</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========== MODAL: QR All ========== -->
-    <div id="qrModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center hidden p-4 modal-backdrop">
-        <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 text-center shadow-2xl modal-content">
-            <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-3">
-                <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
-                    <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
-                    QR کد همه کارت‌ها
-                </h3>
-                <button type="button" onclick="closeQRModal()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            <p class="text-xs text-slate-400 mb-4 leading-relaxed">با اسکن این کد، لیست کامل کارت‌ها به صورت متن خوانا نمایش داده می‌شود.</p>
-            <div id="qrcode" class="flex justify-center my-3 min-h-[230px] items-center"></div>
-            <button type="button" onclick="closeQRModal()" class="w-full mt-3 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-xl text-xs font-semibold transition">بستن</button>
-        </div>
-    </div>
-
-    <!-- ========== MODAL: Single Card QR ========== -->
-    <div id="singleQrModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center hidden p-4 modal-backdrop">
-        <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-3xl p-6 text-center shadow-2xl modal-content">
-            <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-3">
-                <h3 class="text-sm font-bold text-slate-200" id="singleQrTitle">QR کد کارت</h3>
-                <button type="button" onclick="closeSingleQr()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            <div id="singleQrcode" class="flex justify-center my-3 min-h-[230px] items-center"></div>
-            <button type="button" onclick="closeSingleQr()" class="w-full mt-3 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-xl text-xs font-semibold transition">بستن</button>
-        </div>
-    </div>
-
-    <!-- ========== MODAL: Confirm Delete ========== -->
-    <div id="confirmModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center hidden p-4 modal-backdrop">
-        <div class="w-full max-w-xs bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl modal-content text-center">
-            <div class="w-14 h-14 rounded-full bg-rose-500/15 flex items-center justify-center mx-auto mb-4">
-                <svg class="w-7 h-7 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-            </div>
-            <h3 class="text-sm font-bold text-slate-100 mb-1">حذف کارت؟</h3>
-            <p class="text-xs text-slate-400 mb-5" id="confirmText">آیا از حذف این کارت مطمئن هستید؟</p>
-            <div class="flex gap-2">
-                <button type="button" onclick="closeConfirm()" class="flex-1 bg-slate-800 text-slate-300 py-2.5 rounded-xl text-xs font-semibold">انصراف</button>
-                <button type="button" id="confirmActionBtn" class="flex-1 bg-rose-600 text-white py-2.5 rounded-xl text-xs font-semibold">حذف</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========== MODAL: Add / Edit Card ========== -->
-    <div id="cardModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center hidden modal-backdrop">
-        <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl max-h-[92vh] overflow-y-auto no-scrollbar modal-content">
-            
-            <div class="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
-                <h3 id="modalTitle" class="text-base font-bold text-slate-100 flex items-center gap-2">
-                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                    <span>ثبت اطلاعات کارت</span>
-                </h3>
-                <button type="button" onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
             </div>
 
-            <!-- Live Preview -->
-            <div class="mb-5">
-                <div id="previewCard" class="bank-card p-5 text-white flex flex-col justify-between shadow-md" style="background: linear-gradient(135deg, #1e293b, #334155);">
-                    <div class="shimmer-effect"></div>
-                    <div class="flex justify-between items-start z-10">
-                        <span id="previewBankName" class="font-extrabold text-sm tracking-wide opacity-90">کارت بانکی</span>
-                        <div class="card-chip"></div>
-                    </div>
-                    <div id="previewNumber" class="text-lg force-ltr font-bold text-center z-10 my-2 tracking-widest">
-                        •••• •••• •••• ••••
-                    </div>
-                    <div class="flex justify-between items-end z-10 text-xs">
-                        <div>
-                            <div class="text-[10px] opacity-75">صاحب کارت</div>
-                            <div id="previewHolder" class="font-semibold">--- ---</div>
-                        </div>
-                        <div id="luhnStatus" class="text-[10px] opacity-0 transition-opacity"></div>
-                    </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5">شماره حساب (اختیاری)</label>
+                <input type="text" id="inputAccount" inputmode="numeric" placeholder="مثال: ۰۱۰۲۰۳۰۴۰۵۰۰۱"
+                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 ltr">
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1.5">شبا — بدون IR (اختیاری)</label>
+                <div class="relative">
+                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-xs">IR</span>
+                    <input type="text" id="inputIban" inputmode="numeric" maxlength="24" placeholder="۲۴ رقم"
+                        class="w-full bg-slate-950 border border-slate-800 rounded-xl pr-9 pl-20 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-indigo-500 ltr">
+                    <button type="button" id="btnVoiceIban" onclick="startVoiceInput('iban')" class="absolute left-1.5 top-1/2 -translate-y-1/2 px-2.5 py-1.5 rounded-lg bg-amber-500/15 border border-amber-400/25 text-amber-400 text-[10px] font-medium flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z"/></svg>
+                        خواندن
+                    </button>
                 </div>
             </div>
 
-            <form id="cardForm" onsubmit="handleSaveCard(event)" class="space-y-4">
-                <input type="hidden" id="cardId">
-
-                <!-- Card Number -->
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1.5">شماره کارت (۱۶ رقم)</label>
-                    <div class="relative flex items-center">
-                        <input type="text" id="inputCardNumber" inputmode="numeric" maxlength="19" required
-                            placeholder="XXXX XXXX XXXX XXXX"
-                            oninput="onCardNumberInput(this)"
-                            class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-24 pr-3.5 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 force-ltr">
-                        <button type="button" id="btnVoiceCard" onclick="startVoiceInput('card')" title="خواندن شماره کارت"
-                            class="absolute left-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-600 hover:text-white flex items-center gap-1 text-[11px] font-medium transition-all">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z"></path></svg>
-                            <span>خواندن</span>
-                        </button>
-                    </div>
-                    <p id="cardNumberHint" class="text-[10px] text-slate-500 mt-1 h-4"></p>
-                </div>
-
-                <!-- Holder -->
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1.5">نام صاحب حساب / کارت</label>
-                    <div class="relative flex items-center">
-                        <input type="text" id="inputHolder" required placeholder="مثال: علی محمدی"
-                            oninput="document.getElementById('previewHolder').innerText = this.value || '--- ---'"
-                            class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-24 pr-3.5 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500">
-                        <button type="button" id="btnVoiceHolder" onclick="startVoiceInput('holder')" title="گفتن نام"
-                            class="absolute left-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-600 hover:text-white flex items-center gap-1 text-[11px] font-medium transition-all">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z"></path></svg>
-                            <span>خواندن</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Account -->
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1.5">شماره حساب (اختیاری)</label>
-                    <input type="text" id="inputAccount" inputmode="numeric" placeholder="مثال: ۰۱۰۲۰۳۰۴۰۵۰۰۱"
-                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 force-ltr">
-                </div>
-
-                <!-- IBAN -->
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1.5">شماره شبا - بدون IR (اختیاری)</label>
-                    <div class="relative flex items-center">
-                        <span class="absolute right-3 text-slate-500 font-bold text-xs">IR</span>
-                        <input type="text" id="inputIban" inputmode="numeric" maxlength="24" placeholder="۲۴ رقم شماره شبا"
-                            class="w-full bg-slate-950 border border-slate-800 rounded-xl pr-9 pl-24 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 force-ltr">
-                        <button type="button" id="btnVoiceIban" onclick="startVoiceInput('iban')" title="خواندن شبا"
-                            class="absolute left-1.5 px-2.5 py-1.5 rounded-lg bg-amber-600/20 border border-amber-500/30 text-amber-400 hover:bg-amber-600 hover:text-white flex items-center gap-1 text-[11px] font-medium transition-all">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z"></path></svg>
-                            <span>خواندن</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="pt-2 flex gap-3">
-                    <button type="button" onclick="closeModal()" class="flex-1 bg-slate-800 text-slate-300 py-3 rounded-xl text-sm font-semibold">انصراف</button>
-                    <button type="submit" class="flex-1 bg-indigo-600 text-white py-3 rounded-xl text-sm font-semibold shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 transition">ذخیره کارت</button>
-                </div>
-            </form>
-        </div>
+            <div class="pt-2 flex gap-2.5">
+                <button type="button" onclick="closeModal()" class="flex-1 bg-slate-800 text-slate-300 py-3 rounded-xl text-sm font-semibold">انصراف</button>
+                <button type="submit" class="flex-1 bg-indigo-600 text-white py-3 rounded-xl text-sm font-semibold shadow-lg shadow-indigo-600/25">ذخیره</button>
+            </div>
+        </form>
     </div>
+</div>
 
-    <!-- Toast -->
-    <div id="toast" class="fixed bottom-7 left-1/2 -translate-x-1/2 z-[60] bg-emerald-600 text-white px-5 py-2.5 rounded-full text-xs font-medium shadow-xl opacity-0 pointer-events-none transition-all duration-300 flex items-center gap-2">
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-        <span id="toastMessage">کپی شد</span>
-    </div>
+<!-- Toast -->
+<div id="toast" class="toast bg-emerald-600 text-white">
+    <svg class="w-4 h-4 shrink-0" id="toastIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+    <span id="toastMessage">کپی شد</span>
+</div>
 
-    <script>
-        // ==================== BANK DATA ====================
-        const BANK_DATA = {
-            "606373": { name: "بانک مهر ایران", bg: "linear-gradient(135deg, #059669, #047857)", textColor: "text-white" },
-            "639370": { name: "بانک مهر ایران", bg: "linear-gradient(135deg, #059669, #047857)", textColor: "text-white" },
-            "589463": { name: "بانک رفاه کارگران", bg: "linear-gradient(135deg, #1e3a8a, #3b82f6)", textColor: "text-white" },
-            "603799": { name: "بانک ملی ایران", bg: "linear-gradient(135deg, #0f3854, #1a5b88)", textColor: "text-white" },
-            "610433": { name: "بانک ملت", bg: "linear-gradient(135deg, #a71d2a, #e53935)", textColor: "text-white" },
-            "603769": { name: "بانک صادرات", bg: "linear-gradient(135deg, #0a2540, #1e4976)", textColor: "text-white" },
-            "621986": { name: "بانک سامان", bg: "linear-gradient(135deg, #006680, #00a8cc)", textColor: "text-white" },
-            "502229": { name: "بانک پاسارگاد", bg: "linear-gradient(135deg, #1c1917, #d97706)", textColor: "text-white" },
-            "627353": { name: "بانک تجارت", bg: "linear-gradient(135deg, #154c79, #2071b5)", textColor: "text-white" },
-            "589210": { name: "بانک سپه", bg: "linear-gradient(135deg, #b45309, #f59e0b)", textColor: "text-white" },
-            "622106": { name: "بانک پارسیان", bg: "linear-gradient(135deg, #701a75, #a21caf)", textColor: "text-white" },
-            "504172": { name: "بانک رسالت", bg: "linear-gradient(135deg, #0f766e, #14b8a6)", textColor: "text-white" },
-            "636214": { name: "بانک آینده", bg: "linear-gradient(135deg, #4c1d95, #7c3aed)", textColor: "text-white" },
-            "603770": { name: "بانک کشاورزی", bg: "linear-gradient(135deg, #14532d, #16a34a)", textColor: "text-white" },
-            "628023": { name: "بانک مسکن", bg: "linear-gradient(135deg, #c2410c, #ea580c)", textColor: "text-white" },
-            "627648": { name: "بانک توسعه صادرات", bg: "linear-gradient(135deg, #0e7490, #06b6d4)", textColor: "text-white" },
-            "502908": { name: "بانک توسعه تعاون", bg: "linear-gradient(135deg, #7c2d12, #c2410c)", textColor: "text-white" },
-            "627961": { name: "بانک صنعت و معدن", bg: "linear-gradient(135deg, #1e3a5f, #3b82f6)", textColor: "text-white" },
-            "505785": { name: "بانک ایران زمین", bg: "linear-gradient(135deg, #312e81, #6366f1)", textColor: "text-white" },
-            "636949": { name: "بانک حکمت ایرانیان", bg: "linear-gradient(135deg, #134e4a, #14b8a6)", textColor: "text-white" },
-            "627760": { name: "پست بانک ایران", bg: "linear-gradient(135deg, #9f1239, #e11d48)", textColor: "text-white" },
-            "502806": { name: "بانک شهر", bg: "linear-gradient(135deg, #1e293b, #64748b)", textColor: "text-white" },
-            "504706": { name: "بانک شهر", bg: "linear-gradient(135deg, #1e293b, #64748b)", textColor: "text-white" },
-            "639346": { name: "بانک سینا", bg: "linear-gradient(135deg, #1e40af, #3b82f6)", textColor: "text-white" },
-            "621986": { name: "بانک سامان", bg: "linear-gradient(135deg, #006680, #00a8cc)", textColor: "text-white" },
-            "639607": { name: "بانک سرمایه", bg: "linear-gradient(135deg, #4c1d95, #8b5cf6)", textColor: "text-white" },
-            "505416": { name: "بانک گردشگری", bg: "linear-gradient(135deg, #0f766e, #2dd4bf)", textColor: "text-white" },
-            "636795": { name: "بانک مرکزی", bg: "linear-gradient(135deg, #1e3a8a, #2563eb)", textColor: "text-white" }
-        };
+<script>
+const BANK_DATA = {
+    "606373":{name:"بانک مهر ایران",bg:"linear-gradient(135deg,#059669,#047857)"},
+    "639370":{name:"بانک مهر ایران",bg:"linear-gradient(135deg,#059669,#047857)"},
+    "589463":{name:"بانک رفاه کارگران",bg:"linear-gradient(135deg,#1e3a8a,#3b82f6)"},
+    "603799":{name:"بانک ملی ایران",bg:"linear-gradient(135deg,#0f3854,#1a5b88)"},
+    "610433":{name:"بانک ملت",bg:"linear-gradient(135deg,#a71d2a,#e53935)"},
+    "603769":{name:"بانک صادرات",bg:"linear-gradient(135deg,#0a2540,#1e4976)"},
+    "621986":{name:"بانک سامان",bg:"linear-gradient(135deg,#006680,#00a8cc)"},
+    "502229":{name:"بانک پاسارگاد",bg:"linear-gradient(135deg,#1c1917,#d97706)"},
+    "627353":{name:"بانک تجارت",bg:"linear-gradient(135deg,#154c79,#2071b5)"},
+    "589210":{name:"بانک سپه",bg:"linear-gradient(135deg,#b45309,#f59e0b)"},
+    "622106":{name:"بانک پارسیان",bg:"linear-gradient(135deg,#701a75,#a21caf)"},
+    "504172":{name:"بانک رسالت",bg:"linear-gradient(135deg,#0f766e,#14b8a6)"},
+    "636214":{name:"بانک آینده",bg:"linear-gradient(135deg,#4c1d95,#7c3aed)"},
+    "603770":{name:"بانک کشاورزی",bg:"linear-gradient(135deg,#14532d,#16a34a)"},
+    "628023":{name:"بانک مسکن",bg:"linear-gradient(135deg,#c2410c,#ea580c)"},
+    "627648":{name:"بانک توسعه صادرات",bg:"linear-gradient(135deg,#0e7490,#06b6d4)"},
+    "502908":{name:"بانک توسعه تعاون",bg:"linear-gradient(135deg,#7c2d12,#c2410c)"},
+    "627961":{name:"بانک صنعت و معدن",bg:"linear-gradient(135deg,#1e3a5f,#3b82f6)"},
+    "505785":{name:"بانک ایران زمین",bg:"linear-gradient(135deg,#312e81,#6366f1)"},
+    "636949":{name:"بانک حکمت ایرانیان",bg:"linear-gradient(135deg,#134e4a,#14b8a6)"},
+    "627760":{name:"پست بانک ایران",bg:"linear-gradient(135deg,#9f1239,#e11d48)"},
+    "502806":{name:"بانک شهر",bg:"linear-gradient(135deg,#1e293b,#64748b)"},
+    "504706":{name:"بانک شهر",bg:"linear-gradient(135deg,#1e293b,#64748b)"},
+    "639346":{name:"بانک سینا",bg:"linear-gradient(135deg,#1e40af,#3b82f6)"},
+    "639607":{name:"بانک سرمایه",bg:"linear-gradient(135deg,#4c1d95,#8b5cf6)"},
+    "505416":{name:"بانک گردشگری",bg:"linear-gradient(135deg,#0f766e,#2dd4bf)"},
+    "636795":{name:"بانک مرکزی",bg:"linear-gradient(135deg,#1e3a8a,#2563eb)"}
+};
+const DEFAULT_BANK = { name: "کارت بانکی", bg: "linear-gradient(135deg,#1e293b,#334155)" };
 
-        const DEFAULT_BANK = { name: "کارت بانکی", bg: "linear-gradient(135deg, #1e293b, #334155)", textColor: "text-white" };
+let cards = [];
+let recognition = null;
+let currentSort = 'default';
+let maskNumbers = false;
+let pinBuffer = '';
+let pendingDeleteIndex = null;
+let isSettingPin = false;
+let tempNewPin = '';
+let shareMode = 'full';
+let html5QrCode = null;
+let scannerFromForm = false;
 
-        // ==================== STATE ====================
-        let cards = [];
-        let recognition = null;
-        let currentSort = 'default';
-        let maskNumbers = false;
-        let pinBuffer = '';
-        let pendingDeleteIndex = null;
-        let isSettingPin = false;
-        let tempNewPin = '';
+window.addEventListener('DOMContentLoaded', () => {
+    loadCards();
+    checkPinLock();
+    updatePinUI();
+});
 
-        // ==================== INIT ====================
-        window.addEventListener('DOMContentLoaded', () => {
-            loadCards();
-            checkPinLock();
-            updatePinUI();
+function loadCards() {
+    try {
+        const s = localStorage.getItem('my_bank_cards_v2');
+        if (s) cards = JSON.parse(s);
+        else {
+            const old = localStorage.getItem('my_bank_cards');
+            if (old) { cards = JSON.parse(old); saveToStorage(); }
+        }
+    } catch(e) { cards = []; }
+}
+function saveToStorage() {
+    localStorage.setItem('my_bank_cards_v2', JSON.stringify(cards));
+    renderCards();
+}
+
+/* ===== PIN ===== */
+function checkPinLock() {
+    if (localStorage.getItem('app_pin_hash')) {
+        document.getElementById('lockScreen').classList.remove('hidden');
+        document.getElementById('mainApp').classList.add('hidden');
+        document.getElementById('fabBar').classList.add('hidden');
+        pinBuffer = ''; updatePinDots();
+    } else {
+        document.getElementById('lockScreen').classList.add('hidden');
+        document.getElementById('mainApp').classList.remove('hidden');
+        document.getElementById('fabBar').classList.remove('hidden');
+        renderCards();
+    }
+}
+function simpleHash(str) {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) { h = ((h << 5) - h) + str.charCodeAt(i); h |= 0; }
+    return 'h' + Math.abs(h).toString(16);
+}
+function pressPin(n) {
+    if (pinBuffer.length >= 4) return;
+    pinBuffer += n; updatePinDots();
+    if (pinBuffer.length === 4) setTimeout(handlePinComplete, 160);
+}
+function backspacePin() { pinBuffer = pinBuffer.slice(0,-1); updatePinDots(); document.getElementById('pinError').style.opacity='0'; }
+function clearPin() { pinBuffer=''; updatePinDots(); document.getElementById('pinError').style.opacity='0'; }
+function updatePinDots() {
+    document.querySelectorAll('.pin-dot').forEach((d,i) => d.classList.toggle('filled', i < pinBuffer.length));
+}
+function handlePinComplete() {
+    if (isSettingPin) {
+        if (!tempNewPin) {
+            tempNewPin = pinBuffer; pinBuffer = ''; updatePinDots();
+            document.getElementById('lockHint').innerText = 'رمز را دوباره وارد کنید';
+            return;
+        }
+        if (pinBuffer === tempNewPin) {
+            localStorage.setItem('app_pin_hash', simpleHash(pinBuffer));
+            isSettingPin = false; tempNewPin = '';
+            document.getElementById('lockScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('fabBar').classList.remove('hidden');
+            updatePinUI(); showToast('رمز تنظیم شد'); renderCards();
+        } else {
+            document.getElementById('pinError').innerText = 'رمزها مطابقت ندارند';
+            document.getElementById('pinError').style.opacity = '1';
+            pinBuffer = ''; tempNewPin = ''; updatePinDots();
+            document.getElementById('lockHint').innerText = 'رمز ۴ رقمی جدید را وارد کنید';
+            setTimeout(() => document.getElementById('pinError').style.opacity='0', 2000);
+        }
+        return;
+    }
+    if (simpleHash(pinBuffer) === localStorage.getItem('app_pin_hash')) {
+        document.getElementById('lockScreen').classList.add('hidden');
+        document.getElementById('mainApp').classList.remove('hidden');
+        document.getElementById('fabBar').classList.remove('hidden');
+        pinBuffer = ''; updatePinDots(); renderCards();
+    } else {
+        document.getElementById('pinError').innerText = 'رمز اشتباه است';
+        document.getElementById('pinError').style.opacity = '1';
+        pinBuffer = ''; updatePinDots();
+        setTimeout(() => document.getElementById('pinError').style.opacity='0', 1600);
+    }
+}
+function setupPin() {
+    closeSettings(); isSettingPin = true; tempNewPin = ''; pinBuffer = '';
+    document.getElementById('lockHint').innerText = 'رمز ۴ رقمی جدید را وارد کنید';
+    document.getElementById('lockScreen').classList.remove('hidden');
+    document.getElementById('mainApp').classList.add('hidden');
+    document.getElementById('fabBar').classList.add('hidden');
+    updatePinDots();
+}
+function removePin() {
+    if (!confirm('حذف رمز عبور؟')) return;
+    localStorage.removeItem('app_pin_hash'); updatePinUI(); showToast('رمز حذف شد'); closeSettings();
+}
+function updatePinUI() {
+    const has = !!localStorage.getItem('app_pin_hash');
+    const el = document.getElementById('pinStatus');
+    el.innerText = has ? 'فعال' : 'غیرفعال';
+    el.className = has ? 'text-[11px] px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-400' : 'text-[11px] px-2 py-1 rounded-lg bg-slate-800 text-slate-400';
+    document.getElementById('btnRemovePin').classList.toggle('hidden', !has);
+}
+
+/* ===== HELPERS ===== */
+function getBankInfo(num) {
+    const p = (num||'').replace(/\D/g,'').slice(0,6);
+    return BANK_DATA[p] || DEFAULT_BANK;
+}
+function formatCardNumber(v) {
+    return v.replace(/\D/g,'').slice(0,16).replace(/(.{4})/g,'$1 ').trim();
+}
+function luhnCheck(num) {
+    const d = num.replace(/\D/g,'');
+    if (d.length !== 16) return false;
+    let sum=0, alt=false;
+    for (let i=d.length-1;i>=0;i--) {
+        let n = parseInt(d[i],10);
+        if (alt) { n*=2; if(n>9) n-=9; }
+        sum += n; alt = !alt;
+    }
+    return sum % 10 === 0;
+}
+function maskCard(num) {
+    const c = num.replace(/\s/g,'');
+    if (c.length < 8) return num;
+    return '•••• •••• •••• ' + c.slice(-4);
+}
+function convertPersianToDigits(str) {
+    const map = {'۰':'0','۱':'1','۲':'2','۳':'3','۴':'4','۵':'5','۶':'6','۷':'7','۸':'8','۹':'9','٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9'};
+    return str.replace(/[۰-۹٠-٩]/g, w => map[w]||w).replace(/\D/g,'');
+}
+function escapeHtml(t) {
+    const d = document.createElement('div'); d.textContent = t||''; return d.innerHTML;
+}
+function toFa(n) { return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]); }
+
+/* ===== INPUT ===== */
+function onCardNumberInput(input) {
+    const f = formatCardNumber(input.value);
+    input.value = f;
+    document.getElementById('previewNumber').innerText = f || '•••• •••• •••• ••••';
+    const bank = getBankInfo(f);
+    const card = document.getElementById('previewCard');
+    card.style.background = bank.bg;
+    document.getElementById('previewBankName').innerText = bank.name;
+
+    const clean = f.replace(/\s/g,'');
+    const hint = document.getElementById('cardNumberHint');
+    const luhn = document.getElementById('luhnStatus');
+    if (clean.length === 16) {
+        if (luhnCheck(clean)) {
+            hint.innerText = '✓ شماره معتبر است'; hint.className = 'text-[10px] text-emerald-400 mt-1 h-4';
+            luhn.innerText = 'معتبر'; luhn.className = 'text-[10px] text-emerald-300 opacity-100';
+        } else {
+            hint.innerText = '⚠ ممکن است نامعتبر باشد (Luhn)'; hint.className = 'text-[10px] text-amber-400 mt-1 h-4';
+            luhn.innerText = 'نامعتبر'; luhn.className = 'text-[10px] text-amber-300 opacity-100';
+        }
+    } else {
+        hint.innerText = clean.length ? `${toFa(clean.length)} / ۱۶` : '';
+        hint.className = 'text-[10px] text-slate-500 mt-1 h-4';
+        luhn.className = 'text-[10px] opacity-0';
+    }
+}
+
+/* ===== RENDER ===== */
+function setSort(t) {
+    currentSort = t;
+    ['default','bank','name'].forEach(s => {
+        const el = document.getElementById('sort' + s.charAt(0).toUpperCase() + s.slice(1));
+        if (el) el.className = 'chip ' + (s === t ? 'chip-active' : 'chip-idle');
+    });
+    renderCards();
+}
+function toggleMask() {
+    maskNumbers = !maskNumbers;
+    document.getElementById('maskText').innerText = maskNumbers ? 'نمایش' : 'مخفی';
+    const btn = document.getElementById('btnMask');
+    btn.className = 'chip flex items-center gap-1 ' + (maskNumbers ? 'chip-active' : 'chip-idle');
+    renderCards();
+}
+
+function renderCards() {
+    const list = document.getElementById('cardsList');
+    const empty = document.getElementById('emptyState');
+    const q = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
+    document.getElementById('cardCountText').innerText = toFa(cards.length) + ' کارت';
+
+    list.innerHTML = '';
+    let filtered = cards.filter(c => {
+        const bank = getBankInfo(c.cardNumber);
+        return bank.name.toLowerCase().includes(q) ||
+            (c.holder||'').toLowerCase().includes(q) ||
+            (c.cardNumber||'').replace(/\s/g,'').includes(q) ||
+            (c.iban||'').includes(q) || (c.account||'').includes(q);
+    });
+    if (currentSort === 'bank') filtered.sort((a,b) => getBankInfo(a.cardNumber).name.localeCompare(getBankInfo(b.cardNumber).name,'fa'));
+    else if (currentSort === 'name') filtered.sort((a,b) => (a.holder||'').localeCompare(b.holder||'','fa'));
+
+    if (!filtered.length) {
+        empty.classList.remove('hidden'); empty.classList.add('flex');
+        document.getElementById('emptyTitle').innerText = q ? 'نتیجه‌ای نیست' : 'هنوز کارتی ندارید';
+        document.getElementById('emptyDesc').innerText = q ? 'عبارت جستجو را عوض کنید.' : 'اولین کارت را اضافه کنید یا اسکن کنید.';
+        return;
+    }
+    empty.classList.add('hidden'); empty.classList.remove('flex');
+
+    filtered.forEach(card => {
+        const idx = cards.indexOf(card);
+        const bank = getBankInfo(card.cardNumber);
+        const display = maskNumbers ? maskCard(card.cardNumber) : card.cardNumber;
+        const raw = card.cardNumber.replace(/\s/g,'');
+
+        const el = document.createElement('div');
+        el.className = 'glass rounded-2xl p-3.5 flex flex-col gap-3';
+        el.innerHTML = `
+            <div class="bank-card p-4 text-white flex flex-col justify-between" style="background:${bank.bg}">
+                <div class="shimmer"></div>
+                <div class="flex justify-between items-start z-10">
+                    <span class="font-extrabold text-sm opacity-95">${bank.name}</span>
+                    <div class="card-chip"></div>
+                </div>
+                <div class="text-[18px] ltr font-bold text-center z-10 my-2 tracking-wider">${display}</div>
+                <div class="z-10 text-xs">
+                    <div class="text-[10px] opacity-70">صاحب کارت</div>
+                    <div class="font-semibold">${escapeHtml(card.holder)}</div>
+                </div>
+            </div>
+            <div class="space-y-1.5 text-xs">
+                <div class="flex items-center justify-between bg-slate-900/50 p-2.5 rounded-xl border border-slate-800/80 gap-2">
+                    <span class="text-slate-500 shrink-0">کارت</span>
+                    <span class="ltr text-slate-200 truncate flex-1 text-left text-[12px]">${display}</span>
+                    <button onclick="copyToClipboard('${raw}','شماره کارت')" class="text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-lg shrink-0 text-[11px]">کپی</button>
+                </div>
+                ${card.account ? `<div class="flex items-center justify-between bg-slate-900/50 p-2.5 rounded-xl border border-slate-800/80 gap-2">
+                    <span class="text-slate-500 shrink-0">حساب</span>
+                    <span class="ltr text-slate-200 truncate flex-1 text-left text-[12px]">${card.account}</span>
+                    <button onclick="copyToClipboard('${card.account}','شماره حساب')" class="text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg shrink-0 text-[11px]">کپی</button>
+                </div>` : ''}
+                ${card.iban ? `<div class="flex items-center justify-between bg-slate-900/50 p-2.5 rounded-xl border border-slate-800/80 gap-2">
+                    <span class="text-slate-500 shrink-0">شبا</span>
+                    <span class="ltr text-slate-200 truncate flex-1 text-left text-[12px]">IR${card.iban}</span>
+                    <button onclick="copyToClipboard('IR${card.iban}','شبا')" class="text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-lg shrink-0 text-[11px]">کپی</button>
+                </div>` : ''}
+            </div>
+            <div class="flex items-center justify-between pt-1.5 border-t border-slate-800/60 text-[11px] text-slate-400">
+                <div class="flex gap-3">
+                    <button onclick="showSingleQR(${idx})" class="hover:text-amber-400 flex items-center gap-1 transition">QR</button>
+                    <button onclick="copyAllCardInfo(${idx})" class="hover:text-sky-400 flex items-center gap-1 transition">کپی همه</button>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="editCard(${idx})" class="hover:text-indigo-400 transition">ویرایش</button>
+                    <button onclick="askDelete(${idx})" class="text-rose-400 hover:text-rose-300 transition">حذف</button>
+                </div>
+            </div>`;
+        list.appendChild(el);
+    });
+}
+
+/* ===== SHARE QR (مشتری) ===== */
+function buildShareText(mode) {
+    if (!cards.length) return '';
+    if (mode === 'compact') {
+        let t = '💳 شماره‌های کارت:\n\n';
+        cards.forEach((c, i) => {
+            const bank = getBankInfo(c.cardNumber);
+            t += `${i+1}) ${bank.name} — ${c.holder}\n${c.cardNumber.replace(/\s/g,'')}\n\n`;
         });
+        return t.trim();
+    }
+    // full
+    let t = '💳 اطلاعات کارت برای واریز\n════════════════\n\n';
+    cards.forEach((c, i) => {
+        const bank = getBankInfo(c.cardNumber);
+        t += `${i+1}. ${bank.name}\n`;
+        t += `نام: ${c.holder}\n`;
+        t += `کارت: ${c.cardNumber.replace(/\s/g,'')}\n`;
+        if (c.account) t += `حساب: ${c.account}\n`;
+        if (c.iban) t += `شبا: IR${c.iban}\n`;
+        t += '────────────\n';
+    });
+    t += '\nبا لمس طولانی روی شماره می‌توانید کپی کنید.';
+    return t;
+}
 
-        function loadCards() {
-            const saved = localStorage.getItem('my_bank_cards_v2');
-            if (saved) {
-                try { cards = JSON.parse(saved); } catch (e) { cards = []; }
-            } else {
-                // migrate from old key if exists
-                const old = localStorage.getItem('my_bank_cards');
-                if (old) {
-                    try { cards = JSON.parse(old); saveToStorage(); } catch(e) {}
-                }
+function openShareQR() {
+    if (!cards.length) { showToast('کارتی وجود ندارد', true); return; }
+    setShareMode(shareMode);
+    document.getElementById('shareModal').classList.remove('hidden');
+}
+function closeShareQR() { document.getElementById('shareModal').classList.add('hidden'); }
+
+function setShareMode(mode) {
+    shareMode = mode;
+    document.getElementById('tabFull').className = 'flex-1 py-2 rounded-xl text-xs font-semibold ' + (mode==='full' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-300');
+    document.getElementById('tabCompact').className = 'flex-1 py-2 rounded-xl text-xs font-semibold ' + (mode==='compact' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-300');
+
+    const text = buildShareText(mode);
+    document.getElementById('sharePreview').textContent = text;
+
+    const box = document.getElementById('shareQrcode');
+    box.innerHTML = '';
+    new QRCode(box, {
+        text: text,
+        width: 236,
+        height: 236,
+        colorDark: '#0b1220',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+    });
+}
+function copyShareText() {
+    const t = buildShareText(shareMode);
+    copyToClipboard(t, 'لیست کارت‌ها');
+}
+
+/* ===== SINGLE QR ===== */
+function showSingleQR(index) {
+    const c = cards[index]; if (!c) return;
+    const bank = getBankInfo(c.cardNumber);
+    let content = `${bank.name}\nصاحب کارت: ${c.holder}\nشماره کارت: ${c.cardNumber.replace(/\s/g,'')}\n`;
+    if (c.account) content += `شماره حساب: ${c.account}\n`;
+    if (c.iban) content += `شبا: IR${c.iban}\n`;
+    document.getElementById('singleQrTitle').innerText = 'QR • ' + c.holder;
+    const box = document.getElementById('singleQrcode');
+    box.innerHTML = '';
+    new QRCode(box, { text: content, width: 230, height: 230, colorDark: '#0b1220', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.M });
+    document.getElementById('singleQrModal').classList.remove('hidden');
+}
+function closeSingleQr() { document.getElementById('singleQrModal').classList.add('hidden'); }
+
+/* ===== SCANNER ===== */
+function openScanner() {
+    scannerFromForm = false;
+    document.getElementById('scannerModal').classList.remove('hidden');
+    document.getElementById('scanStatus').innerText = 'دوربین در حال آماده‌سازی...';
+    startScanner();
+}
+function openScannerFromForm() {
+    scannerFromForm = true;
+    closeModal();
+    document.getElementById('scannerModal').classList.remove('hidden');
+    document.getElementById('scanStatus').innerText = 'دوربین در حال آماده‌سازی...';
+    startScanner();
+}
+function closeScanner() {
+    stopScanner();
+    document.getElementById('scannerModal').classList.add('hidden');
+}
+async function startScanner() {
+    stopScanner();
+    const el = document.getElementById('reader');
+    el.innerHTML = '';
+    html5QrCode = new Html5Qrcode('reader');
+    try {
+        await html5QrCode.start(
+            { facingMode: 'environment' },
+            { fps: 10, qrbox: { width: 240, height: 240 }, aspectRatio: 1 },
+            onScanSuccess,
+            () => {}
+        );
+        document.getElementById('scanStatus').innerText = 'QR یا شماره کارت را جلوی دوربین بگیرید';
+    } catch (err) {
+        document.getElementById('scanStatus').innerText = 'دسترسی به دوربین ممکن نیست';
+        showToast('دسترسی دوربین رد شد یا پشتیبانی نمی‌شود', true);
+    }
+}
+function stopScanner() {
+    if (html5QrCode) {
+        try { html5QrCode.stop().then(() => html5QrCode.clear()).catch(()=>{}); } catch(e){}
+        html5QrCode = null;
+    }
+}
+function onScanSuccess(decodedText) {
+    stopScanner();
+    document.getElementById('scannerModal').classList.add('hidden');
+    parseScannedData(decodedText);
+}
+function parseScannedData(text) {
+    // استخراج شماره ۱۶ رقمی
+    const digits = convertPersianToDigits(text);
+    const match16 = digits.match(/\d{16}/);
+    const cardNum = match16 ? match16[0] : null;
+
+    // تلاش برای استخراج نام و شبا از متن ساختاریافته خودمان
+    let holder = '', account = '', iban = '';
+    const holderMatch = text.match(/(?:صاحب کارت|نام)[:\s]*([^\n]+)/i);
+    if (holderMatch) holder = holderMatch[1].trim();
+    const accMatch = text.match(/(?:شماره حساب|حساب)[:\s]*([0-9۰-۹]+)/i);
+    if (accMatch) account = convertPersianToDigits(accMatch[1]);
+    const ibanMatch = text.match(/(?:شبا|IBAN)[:\s]*(?:IR)?([0-9۰-۹]{24})/i);
+    if (ibanMatch) iban = convertPersianToDigits(ibanMatch[1]).slice(0,24);
+
+    if (cardNum) {
+        openAddModal(true);
+        const input = document.getElementById('inputCardNumber');
+        input.value = formatCardNumber(cardNum);
+        onCardNumberInput(input);
+        if (holder) {
+            document.getElementById('inputHolder').value = holder;
+            document.getElementById('previewHolder').innerText = holder;
+        }
+        if (account) document.getElementById('inputAccount').value = account;
+        if (iban) document.getElementById('inputIban').value = iban;
+        showToast('اطلاعات از QR خوانده شد — بررسی و ذخیره کنید');
+    } else {
+        showToast('شماره کارت ۱۶ رقمی در اسکن پیدا نشد', true);
+        if (scannerFromForm) openAddModal(false);
+    }
+}
+
+/* ===== VOICE ===== */
+function startVoiceInput(field) {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { showToast('مرورگر از تشخیص گفتار پشتیبانی نمی‌کند', true); return; }
+    const btnId = field === 'card' ? 'btnVoiceCard' : (field === 'holder' ? 'btnVoiceHolder' : 'btnVoiceIban');
+    const btn = document.getElementById(btnId);
+    if (recognition) { recognition.stop(); recognition = null; btn.classList.remove('listening'); return; }
+
+    recognition = new SR();
+    recognition.lang = 'fa-IR';
+    recognition.continuous = field === 'holder';
+    recognition.interimResults = true;
+
+    btn.classList.add('listening');
+    showToast('در حال شنیدن...');
+
+    recognition.onresult = (ev) => {
+        let tr = '';
+        for (let i = ev.resultIndex; i < ev.results.length; i++) tr += ev.results[i][0].transcript;
+        if (field === 'card') {
+            const d = convertPersianToDigits(tr);
+            if (d) {
+                const inp = document.getElementById('inputCardNumber');
+                inp.value = formatCardNumber(d);
+                onCardNumberInput(inp);
+                if (d.length >= 16) recognition.stop();
             }
+        } else if (field === 'iban') {
+            const d = convertPersianToDigits(tr);
+            document.getElementById('inputIban').value = d.slice(0,24);
+            if (d.length >= 24) recognition.stop();
+        } else {
+            document.getElementById('inputHolder').value = tr.trim();
+            document.getElementById('previewHolder').innerText = tr.trim() || '--- ---';
         }
-
-        function saveToStorage() {
-            localStorage.setItem('my_bank_cards_v2', JSON.stringify(cards));
-            renderCards();
-        }
-
-        // ==================== PIN SYSTEM ====================
-        function checkPinLock() {
-            const pin = localStorage.getItem('app_pin_hash');
-            if (pin) {
-                document.getElementById('lockScreen').classList.remove('hidden');
-                document.getElementById('mainApp').classList.add('hidden');
-                pinBuffer = '';
-                updatePinDots();
-            } else {
-                document.getElementById('lockScreen').classList.add('hidden');
-                document.getElementById('mainApp').classList.remove('hidden');
-                renderCards();
-            }
-        }
-
-        function simpleHash(str) {
-            let h = 0;
-            for (let i = 0; i < str.length; i++) {
-                h = ((h << 5) - h) + str.charCodeAt(i);
-                h |= 0;
-            }
-            return 'h' + Math.abs(h).toString(16);
-        }
-
-        function pressPin(num) {
-            if (pinBuffer.length >= 4) return;
-            pinBuffer += num;
-            updatePinDots();
-            if (pinBuffer.length === 4) {
-                setTimeout(() => handlePinComplete(), 180);
-            }
-        }
-
-        function backspacePin() {
-            pinBuffer = pinBuffer.slice(0, -1);
-            updatePinDots();
-            document.getElementById('pinError').style.opacity = '0';
-        }
-
-        function clearPin() {
-            pinBuffer = '';
-            updatePinDots();
-            document.getElementById('pinError').style.opacity = '0';
-        }
-
-        function updatePinDots() {
-            document.querySelectorAll('.pin-dot').forEach((dot, i) => {
-                dot.classList.toggle('filled', i < pinBuffer.length);
-            });
-        }
-
-        function handlePinComplete() {
-            if (isSettingPin) {
-                if (!tempNewPin) {
-                    tempNewPin = pinBuffer;
-                    pinBuffer = '';
-                    updatePinDots();
-                    document.getElementById('lockHint').innerText = 'رمز را دوباره وارد کنید';
-                    return;
-                }
-                if (pinBuffer === tempNewPin) {
-                    localStorage.setItem('app_pin_hash', simpleHash(pinBuffer));
-                    isSettingPin = false;
-                    tempNewPin = '';
-                    document.getElementById('lockScreen').classList.add('hidden');
-                    document.getElementById('mainApp').classList.remove('hidden');
-                    updatePinUI();
-                    showToast('رمز عبور با موفقیت تنظیم شد');
-                    renderCards();
-                } else {
-                    document.getElementById('pinError').innerText = 'رمزها مطابقت ندارند';
-                    document.getElementById('pinError').style.opacity = '1';
-                    pinBuffer = '';
-                    tempNewPin = '';
-                    updatePinDots();
-                    document.getElementById('lockHint').innerText = 'رمز عبور ۴ رقمی جدید را وارد کنید';
-                    setTimeout(() => document.getElementById('pinError').style.opacity = '0', 2000);
-                }
-                return;
-            }
-
-            const stored = localStorage.getItem('app_pin_hash');
-            if (simpleHash(pinBuffer) === stored) {
-                document.getElementById('lockScreen').classList.add('hidden');
-                document.getElementById('mainApp').classList.remove('hidden');
-                pinBuffer = '';
-                updatePinDots();
-                renderCards();
-            } else {
-                document.getElementById('pinError').innerText = 'رمز اشتباه است';
-                document.getElementById('pinError').style.opacity = '1';
-                pinBuffer = '';
-                updatePinDots();
-                setTimeout(() => document.getElementById('pinError').style.opacity = '0', 1800);
-            }
-        }
-
-        function setupPin() {
-            closeSettings();
-            isSettingPin = true;
-            tempNewPin = '';
-            pinBuffer = '';
-            document.getElementById('lockHint').innerText = 'رمز عبور ۴ رقمی جدید را وارد کنید';
-            document.getElementById('lockScreen').classList.remove('hidden');
-            document.getElementById('mainApp').classList.add('hidden');
-            updatePinDots();
-        }
-
-        function removePin() {
-            if (!confirm('آیا از حذف رمز عبور مطمئن هستید؟')) return;
-            localStorage.removeItem('app_pin_hash');
-            updatePinUI();
-            showToast('رمز عبور حذف شد');
-            closeSettings();
-        }
-
-        function updatePinUI() {
-            const hasPin = !!localStorage.getItem('app_pin_hash');
-            document.getElementById('pinStatus').innerText = hasPin ? 'فعال' : 'غیرفعال';
-            document.getElementById('pinStatus').className = hasPin
-                ? 'text-[11px] px-2 py-1 rounded-lg bg-emerald-600/20 text-emerald-400'
-                : 'text-[11px] px-2 py-1 rounded-lg bg-slate-800 text-slate-400';
-            document.getElementById('btnRemovePin').classList.toggle('hidden', !hasPin);
-        }
-
-        // ==================== BANK & FORMAT HELPERS ====================
-        function getBankInfo(cardNumber) {
-            const clean = (cardNumber || '').replace(/\D/g, '');
-            const prefix = clean.slice(0, 6);
-            return BANK_DATA[prefix] || DEFAULT_BANK;
-        }
-
-        function formatCardNumber(value) {
-            const clean = value.replace(/\D/g, '').slice(0, 16);
-            return clean.replace(/(.{4})/g, '$1 ').trim();
-        }
-
-        function luhnCheck(num) {
-            const digits = num.replace(/\D/g, '');
-            if (digits.length !== 16) return false;
-            let sum = 0;
-            let alt = false;
-            for (let i = digits.length - 1; i >= 0; i--) {
-                let n = parseInt(digits[i], 10);
-                if (alt) {
-                    n *= 2;
-                    if (n > 9) n -= 9;
-                }
-                sum += n;
-                alt = !alt;
-            }
-            return sum % 10 === 0;
-        }
-
-        function maskCard(num) {
-            const clean = num.replace(/\s/g, '');
-            if (clean.length < 8) return num;
-            return '•••• •••• •••• ' + clean.slice(-4);
-        }
-
-        function convertPersianToDigits(str) {
-            const p2e = {'۰':'0','۱':'1','۲':'2','۳':'3','۴':'4','۵':'5','۶':'6','۷':'7','۸':'8','۹':'9'};
-            const a2e = {'٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9'};
-            return str.replace(/[۰-۹]/g, w => p2e[w]).replace(/[٠-٩]/g, w => a2e[w]).replace(/\D/g, '');
-        }
-
-        // ==================== CARD INPUT ====================
-        function onCardNumberInput(input) {
-            const formatted = formatCardNumber(input.value);
-            input.value = formatted;
-            document.getElementById('previewNumber').innerText = formatted || '•••• •••• •••• ••••';
-
-            const bankInfo = getBankInfo(formatted);
-            const previewCard = document.getElementById('previewCard');
-            previewCard.style.background = bankInfo.bg;
-            previewCard.className = `bank-card p-5 ${bankInfo.textColor} flex flex-col justify-between shadow-md`;
-            document.getElementById('previewBankName').innerText = bankInfo.name;
-
-            const clean = formatted.replace(/\s/g, '');
-            const hint = document.getElementById('cardNumberHint');
-            const luhnEl = document.getElementById('luhnStatus');
-
-            if (clean.length === 16) {
-                if (luhnCheck(clean)) {
-                    hint.innerText = '✓ شماره کارت معتبر است';
-                    hint.className = 'text-[10px] text-emerald-400 mt-1 h-4';
-                    luhnEl.innerText = 'معتبر';
-                    luhnEl.className = 'text-[10px] text-emerald-300 opacity-100';
-                } else {
-                    hint.innerText = '⚠ شماره کارت نامعتبر به نظر می‌رسد (الگوریتم لuhn)';
-                    hint.className = 'text-[10px] text-amber-400 mt-1 h-4';
-                    luhnEl.innerText = 'نامعتبر';
-                    luhnEl.className = 'text-[10px] text-amber-300 opacity-100';
-                }
-            } else {
-                hint.innerText = clean.length > 0 ? `${clean.length} / ۱۶ رقم` : '';
-                hint.className = 'text-[10px] text-slate-500 mt-1 h-4';
-                luhnEl.className = 'text-[10px] opacity-0';
-            }
-        }
-
-        // ==================== RENDER ====================
-        function setSort(type) {
-            currentSort = type;
-            document.querySelectorAll('.sort-btn').forEach(b => {
-                b.className = 'sort-btn shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-medium bg-slate-800 text-slate-300';
-            });
-            const active = document.getElementById('sort' + type.charAt(0).toUpperCase() + type.slice(1));
-            if (active) active.className = 'sort-btn shrink-0 px-3 py-1.5 rounded-lg text-[11px] font-medium bg-indigo-600 text-white';
-            renderCards();
-        }
-
-        function toggleMask() {
-            maskNumbers = !maskNumbers;
-            document.getElementById('maskText').innerText = maskNumbers ? 'نمایش کامل' : 'مخفی کردن';
-            document.getElementById('btnMask').classList.toggle('bg-indigo-600', maskNumbers);
-            document.getElementById('btnMask').classList.toggle('text-white', maskNumbers);
-            document.getElementById('btnMask').classList.toggle('bg-slate-800', !maskNumbers);
-            document.getElementById('btnMask').classList.toggle('text-slate-300', !maskNumbers);
-            renderCards();
-        }
-
-        function renderCards() {
-            const listEl = document.getElementById('cardsList');
-            const emptyEl = document.getElementById('emptyState');
-            const searchQuery = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
-
-            document.getElementById('cardCountText').innerText = `${toPersianNum(cards.length)} کارت ثبت شده`;
-            listEl.innerHTML = '';
-
-            let filtered = cards.filter(card => {
-                const bank = getBankInfo(card.cardNumber);
-                const q = searchQuery;
-                return bank.name.toLowerCase().includes(q) ||
-                       (card.holder || '').toLowerCase().includes(q) ||
-                       (card.cardNumber || '').replace(/\s/g, '').includes(q) ||
-                       (card.iban || '').includes(q) ||
-                       (card.account || '').includes(q);
-            });
-
-            if (currentSort === 'bank') {
-                filtered.sort((a, b) => getBankInfo(a.cardNumber).name.localeCompare(getBankInfo(b.cardNumber).name, 'fa'));
-            } else if (currentSort === 'name') {
-                filtered.sort((a, b) => (a.holder || '').localeCompare(b.holder || '', 'fa'));
-            }
-
-            if (filtered.length === 0) {
-                emptyEl.classList.remove('hidden');
-                emptyEl.classList.add('flex');
-                if (searchQuery) {
-                    document.getElementById('emptyTitle').innerText = 'نتیجه‌ای یافت نشد';
-                    document.getElementById('emptyDesc').innerText = 'عبارت جستجو را تغییر دهید یا کارت جدیدی اضافه کنید.';
-                } else {
-                    document.getElementById('emptyTitle').innerText = 'کارت بانکی یافت نشد';
-                    document.getElementById('emptyDesc').innerText = 'برای افزودن کارت، دکمه زیر را فشار دهید.';
-                }
-                return;
-            }
-            emptyEl.classList.add('hidden');
-            emptyEl.classList.remove('flex');
-
-            filtered.forEach((card) => {
-                const realIndex = cards.indexOf(card);
-                const bank = getBankInfo(card.cardNumber);
-                const displayNum = maskNumbers ? maskCard(card.cardNumber) : card.cardNumber;
-                const rawNum = card.cardNumber.replace(/\s/g, '');
-
-                const wrapper = document.createElement('div');
-                wrapper.className = 'glass-panel rounded-3xl p-4 flex flex-col gap-3 relative border border-slate-800/80';
-
-                wrapper.innerHTML = `
-                    <div class="bank-card p-5 ${bank.textColor} flex flex-col justify-between shadow-md" style="background: ${bank.bg}">
-                        <div class="shimmer-effect"></div>
-                        <div class="flex justify-between items-start z-10">
-                            <span class="font-extrabold text-sm opacity-95">${bank.name}</span>
-                            <div class="card-chip"></div>
-                        </div>
-                        <div class="text-xl force-ltr font-bold text-center z-10 my-3 tracking-wider">
-                            ${displayNum}
-                        </div>
-                        <div class="flex justify-between items-end z-10 text-xs">
-                            <div>
-                                <div class="text-[10px] opacity-75">صاحب کارت</div>
-                                <div class="font-semibold">${escapeHtml(card.holder)}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-2 text-xs">
-                        <div class="flex items-center justify-between bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 gap-2">
-                            <span class="text-slate-400 shrink-0">شماره کارت:</span>
-                            <span class="force-ltr text-slate-200 truncate flex-1 text-left">${displayNum}</span>
-                            <button onclick="copyToClipboard('${rawNum}', 'شماره کارت')" class="text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-lg shrink-0 hover:bg-indigo-500/20 transition">کپی</button>
-                        </div>
-                        ${card.account ? `
-                        <div class="flex items-center justify-between bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 gap-2">
-                            <span class="text-slate-400 shrink-0">حساب:</span>
-                            <span class="force-ltr text-slate-200 truncate flex-1 text-left">${card.account}</span>
-                            <button onclick="copyToClipboard('${card.account}', 'شماره حساب')" class="text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg shrink-0 hover:bg-emerald-500/20 transition">کپی</button>
-                        </div>` : ''}
-                        ${card.iban ? `
-                        <div class="flex items-center justify-between bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 gap-2">
-                            <span class="text-slate-400 shrink-0">شبا:</span>
-                            <span class="force-ltr text-slate-200 truncate flex-1 text-left">IR${card.iban}</span>
-                            <button onclick="copyToClipboard('IR${card.iban}', 'شماره شبا')" class="text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-lg shrink-0 hover:bg-amber-500/20 transition">کپی</button>
-                        </div>` : ''}
-                    </div>
-
-                    <div class="flex items-center justify-between pt-2 border-t border-slate-800/80 text-xs text-slate-400">
-                        <div class="flex gap-3">
-                            <button onclick="showSingleQR(${realIndex})" class="hover:text-amber-400 flex items-center gap-1 transition">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
-                                QR
-                            </button>
-                            <button onclick="copyAllCardInfo(${realIndex})" class="hover:text-sky-400 flex items-center gap-1 transition">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                                کپی همه
-                            </button>
-                        </div>
-                        <div class="flex gap-3">
-                            <button onclick="editCard(${realIndex})" class="hover:text-indigo-400 flex items-center gap-1 transition">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                ویرایش
-                            </button>
-                            <button onclick="askDelete(${realIndex})" class="text-rose-400 hover:text-rose-300 flex items-center gap-1 transition">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                حذف
-                            </button>
-                        </div>
-                    </div>
-                `;
-                listEl.appendChild(wrapper);
-            });
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text || '';
-            return div.innerHTML;
-        }
-
-        function toPersianNum(n) {
-            return String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
-        }
-
-        // ==================== QR ====================
-        function showAllCardsQR() {
-            if (cards.length === 0) {
-                showToast('هیچ کارتی وجود ندارد', true);
-                return;
-            }
-            let content = "💳 لیست کارت‌ها برای واریز\n\n";
-            cards.forEach((c, idx) => {
-                const bank = getBankInfo(c.cardNumber);
-                content += `${idx + 1}) ${bank.name}\n`;
-                content += `👤 ${c.holder}\n`;
-                content += `💳 ${c.cardNumber.replace(/\s/g, '')}\n`;
-                if (c.account) content += `🏦 ${c.account}\n`;
-                if (c.iban) content += `🌐 IR${c.iban}\n`;
-                content += "────────────\n";
-            });
-            const container = document.getElementById('qrcode');
-            container.innerHTML = '';
-            new QRCode(container, {
-                text: content,
-                width: 230,
-                height: 230,
-                colorDark: "#0f172a",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.M
-            });
-            document.getElementById('qrModal').classList.remove('hidden');
-        }
-
-        function closeQRModal() {
-            document.getElementById('qrModal').classList.add('hidden');
-        }
-
-        function showSingleQR(index) {
-            const c = cards[index];
-            if (!c) return;
-            const bank = getBankInfo(c.cardNumber);
-            let content = `${bank.name}\n`;
-            content += `صاحب کارت: ${c.holder}\n`;
-            content += `شماره کارت: ${c.cardNumber.replace(/\s/g, '')}\n`;
-            if (c.account) content += `شماره حساب: ${c.account}\n`;
-            if (c.iban) content += `شبا: IR${c.iban}\n`;
-
-            document.getElementById('singleQrTitle').innerText = `QR • ${c.holder}`;
-            const container = document.getElementById('singleQrcode');
-            container.innerHTML = '';
-            new QRCode(container, {
-                text: content,
-                width: 230,
-                height: 230,
-                colorDark: "#0f172a",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.M
-            });
-            document.getElementById('singleQrModal').classList.remove('hidden');
-        }
-
-        function closeSingleQr() {
-            document.getElementById('singleQrModal').classList.add('hidden');
-        }
-
-        // ==================== VOICE ====================
-        function startVoiceInput(targetField) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) {
-                showToast('مرورگر شما از تشخیص گفتار پشتیبانی نمی‌کند', true);
-                return;
-            }
-
-            const btnId = targetField === 'card' ? 'btnVoiceCard' : (targetField === 'holder' ? 'btnVoiceHolder' : 'btnVoiceIban');
-            const btn = document.getElementById(btnId);
-
-            if (recognition) {
-                recognition.stop();
-                recognition = null;
-                btn.classList.remove('listening');
-                return;
-            }
-
-            recognition = new SpeechRecognition();
-            recognition.lang = 'fa-IR';
-            recognition.continuous = targetField === 'holder';
-            recognition.interimResults = true;
-            recognition.maxAlternatives = 1;
-
-            btn.classList.add('listening');
-            showToast('در حال شنیدن... صحبت کنید');
-
-            recognition.onresult = (event) => {
-                let transcript = '';
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    transcript += event.results[i][0].transcript;
-                }
-
-                if (targetField === 'card') {
-                    const digits = convertPersianToDigits(transcript);
-                    if (digits.length > 0) {
-                        const input = document.getElementById('inputCardNumber');
-                        input.value = formatCardNumber(digits);
-                        onCardNumberInput(input);
-                        if (digits.length >= 16) {
-                            recognition.stop();
-                        }
-                    }
-                } else if (targetField === 'iban') {
-                    const digits = convertPersianToDigits(transcript);
-                    document.getElementById('inputIban').value = digits.slice(0, 24);
-                    if (digits.length >= 24) recognition.stop();
-                } else if (targetField === 'holder') {
-                    document.getElementById('inputHolder').value = transcript.trim();
-                    document.getElementById('previewHolder').innerText = transcript.trim() || '--- ---';
-                }
-            };
-
-            recognition.onerror = (e) => {
-                btn.classList.remove('listening');
-                if (e.error !== 'aborted') showToast('خطا در تشخیص گفتار', true);
-            };
-
-            recognition.onend = () => {
-                btn.classList.remove('listening');
-                recognition = null;
-            };
-
-            try {
-                recognition.start();
-            } catch (e) {
-                btn.classList.remove('listening');
-                showToast('خطا در شروع میکروفون', true);
-            }
-        }
-
-        // ==================== CRUD ====================
-        function openAddModal(reset = true) {
-            if (reset) {
-                document.getElementById('cardId').value = '';
-                document.getElementById('cardForm').reset();
-                document.getElementById('modalTitle').querySelector('span').innerText = 'ثبت اطلاعات کارت';
-                onCardNumberInput(document.getElementById('inputCardNumber'));
-                document.getElementById('previewHolder').innerText = '--- ---';
-            }
-            document.getElementById('cardModal').classList.remove('hidden');
-        }
-
-        function closeModal() {
-            if (recognition) { try { recognition.stop(); } catch(e){} }
-            document.getElementById('cardModal').classList.add('hidden');
-        }
-
-        function handleSaveCard(e) {
-            e.preventDefault();
-            const id = document.getElementById('cardId').value;
-            const number = document.getElementById('inputCardNumber').value;
-            const holder = document.getElementById('inputHolder').value.trim();
-            const account = document.getElementById('inputAccount').value.trim();
-            const iban = document.getElementById('inputIban').value.replace(/\D/g, '');
-
-            if (number.replace(/\s/g, '').length !== 16) {
-                showToast('لطفاً ۱۶ رقم شماره کارت را کامل وارد کنید', true);
-                return;
-            }
-            if (!holder) {
-                showToast('نام صاحب کارت الزامی است', true);
-                return;
-            }
-
-            const data = { cardNumber: number, holder, account, iban, updatedAt: Date.now() };
-
-            if (id !== '') {
-                cards[parseInt(id)] = data;
-            } else {
-                data.createdAt = Date.now();
-                cards.push(data);
-            }
-
-            saveToStorage();
-            closeModal();
-            showToast('اطلاعات کارت ذخیره شد');
-        }
-
-        function editCard(index) {
-            const card = cards[index];
-            document.getElementById('cardId').value = index;
-            document.getElementById('inputCardNumber').value = card.cardNumber;
-            document.getElementById('inputHolder').value = card.holder;
-            document.getElementById('inputAccount').value = card.account || '';
-            document.getElementById('inputIban').value = card.iban || '';
-            document.getElementById('modalTitle').querySelector('span').innerText = 'ویرایش کارت';
-            onCardNumberInput(document.getElementById('inputCardNumber'));
-            document.getElementById('previewHolder').innerText = card.holder || '--- ---';
-            document.getElementById('cardModal').classList.remove('hidden');
-        }
-
-        function askDelete(index) {
-            pendingDeleteIndex = index;
-            const card = cards[index];
-            document.getElementById('confirmText').innerText = `کارت «${card.holder}» حذف شود؟`;
-            document.getElementById('confirmActionBtn').onclick = () => {
-                cards.splice(pendingDeleteIndex, 1);
-                saveToStorage();
-                closeConfirm();
-                showToast('کارت با موفقیت حذف شد');
-            };
-            document.getElementById('confirmModal').classList.remove('hidden');
-        }
-
-        function closeConfirm() {
-            document.getElementById('confirmModal').classList.add('hidden');
-            pendingDeleteIndex = null;
-        }
-
-        // ==================== COPY / EXPORT ====================
-        function copyToClipboard(text, msg) {
-            navigator.clipboard.writeText(text).then(() => {
-                showToast(`${msg} کپی شد`);
-            }).catch(() => {
-                // fallback
-                const ta = document.createElement('textarea');
-                ta.value = text;
-                document.body.appendChild(ta);
-                ta.select();
-                document.execCommand('copy');
-                document.body.removeChild(ta);
-                showToast(`${msg} کپی شد`);
-            });
-        }
-
-        function copyAllCardInfo(index) {
-            const c = cards[index];
-            const bank = getBankInfo(c.cardNumber);
-            let text = `${bank.name}\n`;
-            text += `صاحب کارت: ${c.holder}\n`;
-            text += `شماره کارت: ${c.cardNumber.replace(/\s/g, '')}\n`;
-            if (c.account) text += `شماره حساب: ${c.account}\n`;
-            if (c.iban) text += `شبا: IR${c.iban}\n`;
-            copyToClipboard(text, 'اطلاعات کامل کارت');
-        }
-
-        function exportCards() {
-            if (cards.length === 0) {
-                showToast('کارتی برای خروجی وجود ندارد', true);
-                return;
-            }
-            const data = {
-                version: 2,
-                exportedAt: new Date().toISOString(),
-                cards: cards
-            };
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `bank-cards-backup-${new Date().toISOString().slice(0,10)}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-            showToast('فایل پشتیبان دانلود شد');
-            closeSettings();
-        }
-
-        function importCards(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    const imported = Array.isArray(data) ? data : (data.cards || []);
-                    if (!Array.isArray(imported) || imported.length === 0) {
-                        showToast('فایل معتبر نیست', true);
-                        return;
-                    }
-                    if (confirm(`${imported.length} کارت پیدا شد. آیا جایگزین کارت‌های فعلی شوند؟\n(در صورت انصراف، به لیست فعلی اضافه می‌شوند)`)) {
-                        cards = imported;
-                    } else {
-                        cards = cards.concat(imported);
-                    }
-                    saveToStorage();
-                    showToast(`${imported.length} کارت بازیابی شد`);
-                    closeSettings();
-                } catch (err) {
-                    showToast('خطا در خواندن فایل', true);
-                }
-            };
-            reader.readAsText(file);
-            event.target.value = '';
-        }
-
-        function clearAllData() {
-            if (!confirm('آیا مطمئن هستید؟ تمام کارت‌ها و رمز عبور حذف خواهند شد.')) return;
-            if (!confirm('این عمل غیرقابل بازگشت است. ادامه می‌دهید؟')) return;
-            localStorage.removeItem('my_bank_cards_v2');
-            localStorage.removeItem('my_bank_cards');
-            localStorage.removeItem('app_pin_hash');
-            cards = [];
-            updatePinUI();
-            closeSettings();
-            showToast('همه اطلاعات پاک شد');
-            renderCards();
-        }
-
-        // ==================== SETTINGS ====================
-        function openSettings() {
-            updatePinUI();
-            document.getElementById('settingsModal').classList.remove('hidden');
-        }
-        function closeSettings() {
-            document.getElementById('settingsModal').classList.add('hidden');
-        }
-
-        // ==================== TOAST ====================
-        function showToast(msg, isError = false) {
-            const toast = document.getElementById('toast');
-            const icon = toast.querySelector('svg');
-            document.getElementById('toastMessage').innerText = msg;
-            toast.className = `fixed bottom-7 left-1/2 -translate-x-1/2 z-[60] px-5 py-2.5 rounded-full text-xs font-medium shadow-xl flex items-center gap-2 toast-enter ${isError ? 'bg-rose-600' : 'bg-emerald-600'} text-white`;
-            if (isError) {
-                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>';
-            } else {
-                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>';
-            }
-            clearTimeout(toast._timer);
-            toast._timer = setTimeout(() => {
-                toast.classList.remove('toast-enter');
-                toast.classList.add('opacity-0', 'pointer-events-none');
-            }, 2400);
-        }
-    </script>
+    };
+    recognition.onerror = () => btn.classList.remove('listening');
+    recognition.onend = () => { btn.classList.remove('listening'); recognition = null; };
+    try { recognition.start(); } catch(e) { btn.classList.remove('listening'); }
+}
+
+/* ===== CRUD ===== */
+function openAddModal(reset = true) {
+    if (reset) {
+        document.getElementById('cardId').value = '';
+        document.getElementById('cardForm').reset();
+        document.getElementById('modalTitle').querySelector('span').innerText = 'ثبت کارت';
+        onCardNumberInput(document.getElementById('inputCardNumber'));
+        document.getElementById('previewHolder').innerText = '--- ---';
+    }
+    document.getElementById('cardModal').classList.remove('hidden');
+}
+function closeModal() {
+    if (recognition) try { recognition.stop(); } catch(e){}
+    document.getElementById('cardModal').classList.add('hidden');
+}
+function handleSaveCard(e) {
+    e.preventDefault();
+    const id = document.getElementById('cardId').value;
+    const number = document.getElementById('inputCardNumber').value;
+    const holder = document.getElementById('inputHolder').value.trim();
+    const account = document.getElementById('inputAccount').value.trim();
+    const iban = document.getElementById('inputIban').value.replace(/\D/g,'');
+    if (number.replace(/\s/g,'').length !== 16) { showToast('۱۶ رقم شماره کارت را کامل وارد کنید', true); return; }
+    if (!holder) { showToast('نام صاحب کارت الزامی است', true); return; }
+    const data = { cardNumber: number, holder, account, iban, updatedAt: Date.now() };
+    if (id !== '') cards[parseInt(id)] = data;
+    else { data.createdAt = Date.now(); cards.push(data); }
+    saveToStorage(); closeModal(); showToast('کارت ذخیره شد');
+}
+function editCard(i) {
+    const c = cards[i];
+    document.getElementById('cardId').value = i;
+    document.getElementById('inputCardNumber').value = c.cardNumber;
+    document.getElementById('inputHolder').value = c.holder;
+    document.getElementById('inputAccount').value = c.account || '';
+    document.getElementById('inputIban').value = c.iban || '';
+    document.getElementById('modalTitle').querySelector('span').innerText = 'ویرایش کارت';
+    onCardNumberInput(document.getElementById('inputCardNumber'));
+    document.getElementById('previewHolder').innerText = c.holder || '--- ---';
+    document.getElementById('cardModal').classList.remove('hidden');
+}
+function askDelete(i) {
+    pendingDeleteIndex = i;
+    document.getElementById('confirmText').innerText = `کارت «${cards[i].holder}» حذف شود؟`;
+    document.getElementById('confirmActionBtn').onclick = () => {
+        cards.splice(pendingDeleteIndex, 1); saveToStorage(); closeConfirm(); showToast('کارت حذف شد');
+    };
+    document.getElementById('confirmModal').classList.remove('hidden');
+}
+function closeConfirm() { document.getElementById('confirmModal').classList.add('hidden'); pendingDeleteIndex = null; }
+
+/* ===== COPY / EXPORT ===== */
+function copyToClipboard(text, msg) {
+    navigator.clipboard.writeText(text).then(() => showToast(msg + ' کپی شد')).catch(() => {
+        const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta); showToast(msg + ' کپی شد');
+    });
+}
+function copyAllCardInfo(i) {
+    const c = cards[i]; const bank = getBankInfo(c.cardNumber);
+    let t = `${bank.name}\nصاحب کارت: ${c.holder}\nشماره کارت: ${c.cardNumber.replace(/\s/g,'')}\n`;
+    if (c.account) t += `شماره حساب: ${c.account}\n`;
+    if (c.iban) t += `شبا: IR${c.iban}\n`;
+    copyToClipboard(t, 'اطلاعات کارت');
+}
+function exportCards() {
+    if (!cards.length) { showToast('کارتی نیست', true); return; }
+    const blob = new Blob([JSON.stringify({ version: 2, exportedAt: new Date().toISOString(), cards }, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = `bank-cards-${new Date().toISOString().slice(0,10)}.json`; a.click();
+    URL.revokeObjectURL(a.href); showToast('فایل دانلود شد'); closeSettings();
+}
+function importCards(ev) {
+    const f = ev.target.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = e => {
+        try {
+            const data = JSON.parse(e.target.result);
+            const arr = Array.isArray(data) ? data : (data.cards || []);
+            if (!arr.length) { showToast('فایل خالی یا نامعتبر', true); return; }
+            if (confirm(`${arr.length} کارت پیدا شد. جایگزین شوند؟\n(انصراف = اضافه به لیست فعلی)`)) cards = arr;
+            else cards = cards.concat(arr);
+            saveToStorage(); showToast(arr.length + ' کارت بازیابی شد'); closeSettings();
+        } catch(err) { showToast('خطا در خواندن فایل', true); }
+    };
+    r.readAsText(f); ev.target.value = '';
+}
+function clearAllData() {
+    if (!confirm('همه کارت‌ها و رمز پاک شود؟')) return;
+    if (!confirm('غیرقابل بازگشت است. مطمئنید؟')) return;
+    localStorage.removeItem('my_bank_cards_v2'); localStorage.removeItem('my_bank_cards'); localStorage.removeItem('app_pin_hash');
+    cards = []; updatePinUI(); closeSettings(); showToast('همه اطلاعات پاک شد'); renderCards();
+}
+
+/* ===== SETTINGS ===== */
+function openSettings() { updatePinUI(); document.getElementById('settingsModal').classList.remove('hidden'); }
+function closeSettings() { document.getElementById('settingsModal').classList.add('hidden'); }
+
+/* ===== TOAST ===== */
+function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    document.getElementById('toastMessage').innerText = msg;
+    t.className = 'toast show ' + (isError ? 'bg-rose-600' : 'bg-emerald-600') + ' text-white';
+    const icon = document.getElementById('toastIcon');
+    icon.innerHTML = isError
+        ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>'
+        : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>';
+    clearTimeout(t._tm);
+    t._tm = setTimeout(() => t.classList.remove('show'), 2400);
+}
+</script>
 </body>
 </html>
